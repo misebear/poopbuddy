@@ -83,4 +83,20 @@ public class MainActivity extends BridgeActivity {
             });
         }
     }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void onBackPressed() {
+        if (getBridge() != null && getBridge().getWebView() != null) {
+            WebView webView = getBridge().getWebView();
+            String url = webView.getUrl();
+
+            // 외부 페이지(카카오 로그인 등)에서 뒤로가기 → 앱 메인으로 복귀
+            if (url != null && !url.contains("localhost")) {
+                webView.loadUrl("https://localhost");
+                return;
+            }
+        }
+        super.onBackPressed();
+    }
 }
