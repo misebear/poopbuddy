@@ -28,33 +28,12 @@ function ensureKakaoInit() {
 // 카카오 OAuth 콜백 처리
 window.addEventListener('DOMContentLoaded', function () {
   ensureKakaoInit();
-
-  // 1) WebView 내부 리다이렉트 (code 파라미터가 URL에 있을 때)
   var url = new URL(window.location.href);
   var code = url.searchParams.get('code');
   var kakaoState = url.searchParams.get('state');
   if (code && kakaoState === 'kakao_login') {
     window.history.replaceState({}, document.title, url.pathname);
     handleKakaoCallback(code);
-  }
-
-  // 2) 딥링크 리다이렉트 (Chrome Custom Tabs → poopbuddy://kakao-callback?code=...)
-  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
-    window.Capacitor.Plugins.App.addListener('appUrlOpen', function (event) {
-      console.log('[PoopBuddy] Deep link:', event.url);
-      if (event.url && event.url.indexOf('poopbuddy://kakao-callback') === 0) {
-        var deepUrl = new URL(event.url);
-        var deepCode = deepUrl.searchParams.get('code');
-        if (deepCode) {
-          // Chrome Custom Tab 닫기
-          if (window.Capacitor.Plugins.Browser) {
-            window.Capacitor.Plugins.Browser.close();
-          }
-          handleKakaoCallback(deepCode);
-        }
-      }
-    });
-    console.log('[PoopBuddy] Kakao deep link listener registered');
   }
 });
 
@@ -63,7 +42,7 @@ async function handleKakaoCallback(authCode) {
     showToast('카카오 로그인 처리 중...');
 
     // 1. auth code → access token 교환 (Kakao REST API)
-    var redirectUri = 'poopbuddy://kakao-callback';
+    var redirectUri = 'https://localhost';
 
     var tokenRes = await fetch('https://kauth.kakao.com/oauth/token', {
       method: 'POST',
@@ -3372,22 +3351,16 @@ async function socialLogin(provider) {
   }
 
   if (provider === 'kakao') {
-    // ── 카카오 로그인: Chrome Custom Tabs → 카카오톡 앱 로그인 지원 ──
+    // ── 카카오 로그인: WebView OAuth ──
     showToast(state.lang === 'ko' ? '카카오 로그인 중...' : 'Signing in with Kakao...');
-    var redirectUri = 'poopbuddy://kakao-callback';
+    var redirectUri = 'https://localhost';
     var kakaoOAuthUrl = 'https://kauth.kakao.com/oauth/authorize'
       + '?client_id=43bb4bf552d6376f7709acddff6718b9'
       + '&redirect_uri=' + encodeURIComponent(redirectUri)
       + '&response_type=code'
       + '&state=kakao_login'
       + '&scope=profile_nickname,profile_image,account_email';
-
-    // 네이티브 앱이면 Chrome Custom Tabs로 열기 (카카오톡 앱 로그인 버튼 표시)
-    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {
-      window.Capacitor.Plugins.Browser.open({ url: kakaoOAuthUrl });
-    } else {
-      window.location.href = kakaoOAuthUrl;
-    }
+    window.location.href = kakaoOAuthUrl;
     return;
   }
 
