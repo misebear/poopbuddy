@@ -2622,3 +2622,163 @@ img {
   background: #ff5252;
   color: white;
 }
+
+/* ── Ad Banner Sticky Footer ── */
+.ad-banner {
+  position: fixed;
+  bottom: 60px;
+  /* above bottom nav */
+  left: 0;
+  right: 0;
+  z-index: 90;
+  background: var(--bg-primary);
+  border-top: 1px solid var(--border-soft);
+  padding: 4px 0;
+}
+
+/* ===== Issey Miyake Dark Mode ===== */
+/* Structural · Geometric · Muted Elegance */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Deep architectural backgrounds */
+    --bg-primary: #0F0F12;
+    --bg-secondary: #1A1A21;
+    --bg-card: #1E1E27;
+    --bg-glass: rgba(30, 30, 39, 0.85);
+
+    /* Refined typography colors */
+    --text-primary: #E8E4DF;
+    --text-secondary: #9B9590;
+    --text-muted: #5A5650;
+
+    /* Muted jewel accents – not neon, structural */
+    --accent-mint: #6BB89E;
+    --accent-mint-light: rgba(107, 184, 158, 0.15);
+    --accent-coral: #C47068;
+    --accent-coral-light: rgba(196, 112, 104, 0.12);
+    --accent-lavender: #9585C0;
+    --accent-lavender-light: rgba(149, 133, 192, 0.12);
+    --accent-peach: #C49A6C;
+    --accent-peach-light: rgba(196, 154, 108, 0.1);
+    --accent-sky: #6BA8D4;
+    --accent-sky-light: rgba(107, 168, 212, 0.1);
+
+    /* Borders & Shadows */
+    --border-soft: rgba(255, 255, 255, 0.06);
+    --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  }
+
+  body {
+    background: #0F0F12;
+    color: #E8E4DF;
+  }
+
+  /* Cards – frosted glass effect */
+  .card,
+  .feature-card {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-soft) !important;
+    box-shadow: var(--shadow-card) !important;
+  }
+
+  /* Hero section */
+  .hero {
+    background: linear-gradient(180deg, #14141A 0%, #0F0F12 100%) !important;
+  }
+
+  .hero-title {
+    color: var(--text-primary) !important;
+  }
+
+  /* Mode selector cards */
+  .mode-card {
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-soft) !important;
+  }
+
+  .mode-card.active {
+    background: var(--bg-card) !important;
+    border-color: var(--accent-mint) !important;
+    box-shadow: 0 0 20px rgba(107, 184, 158, 0.15) !important;
+  }
+
+  /* Navbar */
+  .navbar {
+    background: rgba(15, 15, 18, 0.92) !important;
+    backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid var(--border-soft) !important;
+  }
+
+  .nav-logo .logo-text {
+    color: var(--text-primary) !important;
+  }
+
+  /* Bottom nav */
+  .bottom-nav {
+    background: rgba(15, 15, 18, 0.95) !important;
+    backdrop-filter: blur(16px) !important;
+    border-top: 1px solid var(--border-soft) !important;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    background: linear-gradient(135deg, #6BB89E, #5A9F88) !important;
+    color: #0F0F12 !important;
+    font-weight: 700 !important;
+  }
+
+  .btn-secondary {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-soft) !important;
+  }
+
+  /* Ad banner */
+  .ad-banner {
+    background: var(--bg-primary) !important;
+    border-top-color: var(--border-soft) !important;
+  }
+
+  /* Modal overlays */
+  .modal-overlay {
+    background: rgba(0, 0, 0, 0.7) !important;
+  }
+
+  /* Input fields */
+  input,
+  textarea,
+  select {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-soft) !important;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+  }
+
+  /* Upload zone */
+  .upload-zone,
+  .drop-zone {
+    background: var(--bg-secondary) !important;
+    border-color: var(--border-soft) !important;
+  }
+
+  /* Toast */
+  .toast-notification {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-soft) !important;
+  }
+}

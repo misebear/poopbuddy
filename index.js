@@ -1,8 +1,24 @@
 /* ===== PoopBuddy — Main App (Full i18n) ===== */
 
+// ── Haptic Feedback ──
+function haptic(type) {
+  try {
+    if (navigator.vibrate) {
+      switch (type) {
+        case 'light': navigator.vibrate(10); break;
+        case 'medium': navigator.vibrate(25); break;
+        case 'success': navigator.vibrate([15, 50, 15]); break;
+        case 'error': navigator.vibrate([30, 50, 30, 50, 30]); break;
+        default: navigator.vibrate(15);
+      }
+    }
+  } catch (e) { }
+}
+
 // ── Global showToast (전역 토스트 함수) ──
 function showToast(msg, duration) {
   duration = duration || 2500;
+  haptic('light');
   let t = document.getElementById('pb-toast');
   if (!t) {
     t = document.createElement('div');
@@ -227,6 +243,8 @@ const DB = {
   completedChallenges: JSON.parse(localStorage.getItem('pb-challenges') || '{}'),
   // Completed missions (milestone IDs)
   completedMissions: JSON.parse(localStorage.getItem('pb-missions-done') || '[]'),
+  // Favorite friends
+  favFriends: JSON.parse(localStorage.getItem('pb-fav-friends') || '[]'),
 };
 
 // ===== Login Logic (Global Scope) =====
@@ -334,8 +352,8 @@ function getRecentHistory(days) {
   return DB.history.filter(h => new Date(h.date) >= cutoff && h.pet === state.mode);
 }
 
-function addPet(name, species, breed, birthday, weight) {
-  const pet = { id: Date.now().toString(), name, species, breed, birthday, weight, created: new Date().toISOString() };
+function addPet(name, species, breed, birthday, weight, photo) {
+  const pet = { id: Date.now().toString(), name, species, breed, birthday, weight, photo: photo || '', created: new Date().toISOString() };
   DB.pets.push(pet);
   DB.activePet = pet.id;
   saveDB('pets'); saveDB('activePet');
@@ -434,10 +452,10 @@ const T = {
     home: 'Home', analyze: 'Analyze', feed: 'Feed', calendar: 'Calendar', missions: 'Missions',
     halloffame: 'Hall of Fame', worldmap: 'World Map', login: 'Login', more: 'More',
     // Hero
-    heroTitle1: "Your Pet's Health Story", heroTitle2: 'Told by Poop', heroTitle3: '🐾',
-    heroLabel: 'AI Health Analysis',
-    heroSub: 'One photo. Instant health insights. Track patterns, compare globally, and catch issues early.',
-    startBtn: '📸 Analyze Now', learnBtn: 'Explore Feed',
+    heroTitle1: "Your Pet's Health", heroTitle2: 'Told by Poop', heroTitle3: '🐾',
+    heroLabel: '✨ Smart Analysis',
+    heroSub: 'One photo. Instant insights. Track & compare.',
+    startBtn: '📸 Analyze', learnBtn: 'Feed',
     // Stats
     statUsers: '20,000+', statUsersL: 'Users', statAnalyses: '85,000+', statAnalysesL: 'Analyses',
     statCountries: '42', statCountriesL: 'Countries',
@@ -612,10 +630,10 @@ const T = {
   ko: {
     home: '홈', analyze: '분석', feed: '피드', calendar: '캘린더', missions: '미션',
     halloffame: '명예의전당', worldmap: '월드맵', login: '로그인', more: '더보기',
-    heroTitle1: '우리 아이 건강,', heroTitle2: '똥이 말해줄게요', heroTitle3: '🐾',
-    heroLabel: 'AI 건강 분석',
-    heroSub: '사진 한 장이면 충분해요. 색상, 형태, 질감까지 AI가 꼼꼼히 분석해드려요.',
-    startBtn: '📸 지금 분석하기', learnBtn: '피드 둘러보기',
+    heroTitle1: '건강 신호,', heroTitle2: '똥이 알려줘요', heroTitle3: '🐾',
+    heroLabel: '✨ 스마트 분석',
+    heroSub: '사진 한 장으로 색상·형태·질감 즉시 분석',
+    startBtn: '📸 분석하기', learnBtn: '피드',
     statUsers: '20,000+', statUsersL: '사용자', statAnalyses: '85,000+', statAnalysesL: '분석 건',
     statCountries: '42', statCountriesL: '국가',
     modeDog: '강아지', modeCat: '고양이', modeHuman: '사람',
@@ -992,16 +1010,8 @@ const TOILET_RATINGS = [
   { name: 'Gangnam Station', rating: 3.5, clean: 'toiletAvg', votes: 178, sitPct: 62, distance: '450m' },
 ];
 
-// Calendar mock records
+// Calendar records (empty by default — populated by analysis results)
 const CAL_RECORDS = {};
-(() => {
-  const bristolEmojis = ['⚫', '🟤', '🟫', '🟡', '🟠', '🔴', '💧'];
-  const today = new Date();
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(today); d.setDate(d.getDate() - i);
-    CAL_RECORDS[`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`] = bristolEmojis[Math.floor(Math.random() * 5) + 1];
-  }
-})();
 
 // ── Demo Data Loader (call from console: loadDemoData()) ──
 function loadDemoData() {
@@ -1125,7 +1135,7 @@ const typeIcon = m => ({ dog: '🐕', cat: '🐱', human: '👤' })[m] || '🐕'
 function renderLanding() {
   // Mode-specific SVG mascots
   const mascots = {
-    dog: `<svg viewBox="0 0 160 160" width="140" height="140" style="margin:0 auto">
+    dog: `<svg viewBox="0 0 160 160" width="100" height="100" style="margin:0 auto">
       <ellipse cx="80" cy="110" rx="50" ry="40" fill="#F5E6D3" stroke="#D4C0A8" stroke-width="2"/>
       <circle cx="80" cy="65" r="38" fill="#F5E6D3" stroke="#D4C0A8" stroke-width="2"/>
       <ellipse cx="48" cy="40" rx="16" ry="23" fill="#E8D5C0" stroke="#D4C0A8" stroke-width="2" transform="rotate(-15 48 40)"/>
@@ -1140,7 +1150,7 @@ function renderLanding() {
       <ellipse cx="58" cy="145" rx="11" ry="7" fill="#E8D5C0" stroke="#D4C0A8" stroke-width="1.5"/>
       <ellipse cx="102" cy="145" rx="11" ry="7" fill="#E8D5C0" stroke="#D4C0A8" stroke-width="1.5"/>
     </svg>`,
-    cat: `<svg viewBox="0 0 160 160" width="140" height="140" style="margin:0 auto">
+    cat: `<svg viewBox="0 0 160 160" width="100" height="100" style="margin:0 auto">
       <ellipse cx="80" cy="110" rx="45" ry="38" fill="#E8E0D8" stroke="#C4B8AC" stroke-width="2"/>
       <circle cx="80" cy="65" r="36" fill="#E8E0D8" stroke="#C4B8AC" stroke-width="2"/>
       <polygon points="50,40 38,10 60,35" fill="#E8E0D8" stroke="#C4B8AC" stroke-width="2"/>
@@ -1162,7 +1172,7 @@ function renderLanding() {
       <ellipse cx="58" cy="143" rx="10" ry="6" fill="#DDD5CD" stroke="#C4B8AC" stroke-width="1.5"/>
       <ellipse cx="102" cy="143" rx="10" ry="6" fill="#DDD5CD" stroke="#C4B8AC" stroke-width="1.5"/>
     </svg>`,
-    human: `<svg viewBox="0 0 160 160" width="140" height="140" style="margin:0 auto">
+    human: `<svg viewBox="0 0 160 160" width="100" height="100" style="margin:0 auto">
       <ellipse cx="80" cy="120" rx="35" ry="32" fill="#7ECF8B" stroke="#5BB89A" stroke-width="2"/>
       <circle cx="80" cy="60" r="35" fill="#FFDCB5" stroke="#E8C9A0" stroke-width="2"/>
       <path d="M50 45 Q50 20 80 18 Q110 20 110 45" fill="#6B4423" stroke="#5A3A1E" stroke-width="1.5"/>
@@ -1184,78 +1194,79 @@ function renderLanding() {
     human: { en: "Your gut talks. We translate.", ko: "당신의 장이 보내는 신호, 우리가 읽어드려요", ja: "あなたの腸が語る健康サインを翻訳します" }
   };
   const heroSub = (modeSubtitles[state.mode] || modeSubtitles.dog)[state.lang] || (modeSubtitles[state.mode] || modeSubtitles.dog).en;
+  // Get active pet photo for profile overlay
+  const activePet = DB.pets.find(p => p.species === state.mode) || {};
+  const profilePhoto = activePet.photo || (DB.user.loggedIn ? DB.user.photoUrl : '') || '';
 
   return `<div class="page">
     <div class="hero">
-      <div class="hero-mascot">
+      <div class="hero-mascot" style="position:relative;display:inline-block">
         ${mascots[state.mode] || mascots.dog}
+        ${profilePhoto ? `<div style="position:absolute;bottom:0;right:0;width:44px;height:44px;border-radius:50%;overflow:hidden;border:3px solid var(--accent-mint);background:var(--bg-card);box-shadow:0 2px 8px rgba(0,0,0,0.15)"><img src="${profilePhoto}" style="width:100%;height:100%;object-fit:cover"></div>` : ''}
       </div>
-      <div class="hero-label" style="display:inline-block;padding:6px 16px;border-radius:20px;background:linear-gradient(135deg,var(--accent-mint-light),var(--accent-lavender-light));font-size:0.8rem;font-weight:700;color:var(--accent-mint);letter-spacing:0.5px;margin-bottom:12px">${t('heroLabel')}</div>
-      <h1 class="hero-title" style="line-height:1.2">${t('heroTitle1')}<br><span style="background:linear-gradient(135deg,var(--accent-mint),var(--accent-lavender));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">${t('heroTitle2')}</span> ${t('heroTitle3')}</h1>
-      <p class="hero-subtitle" style="max-width:360px;margin:12px auto 0;line-height:1.6;font-size:0.95rem">${heroSub}</p>
-      <div class="hero-cta">
-        <button class="btn-primary" onclick="navigate('analyze')">${t('startBtn')}</button>
-        <button class="btn-secondary" onclick="navigate('feed')">${t('learnBtn')}</button>
+      <div class="hero-label" style="display:inline-block;padding:4px 14px;border-radius:20px;background:linear-gradient(135deg,var(--accent-mint-light),var(--accent-lavender-light));font-size:0.75rem;font-weight:700;color:var(--accent-mint);letter-spacing:0.5px;margin-bottom:8px">${t('heroLabel')}</div>
+      <h1 class="hero-title" style="line-height:1.2;font-size:1.4rem">${t('heroTitle1')}<br><span style="background:linear-gradient(135deg,var(--accent-mint),var(--accent-lavender));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">${t('heroTitle2')}</span> ${t('heroTitle3')}</h1>
+      <p class="hero-subtitle" style="max-width:320px;margin:8px auto 0;line-height:1.5;font-size:0.85rem">${heroSub}</p>
+      <div class="hero-cta" style="display:flex;gap:10px;justify-content:center;margin-top:20px">
+        <button class="btn-primary" style="flex:1;max-width:150px;font-size:0.85rem;padding:12px 16px;border-radius:14px;font-weight:700" onclick="navigate('analyze')">${t('startBtn')}</button>
+        <button class="btn-secondary" style="flex:1;max-width:150px;font-size:0.85rem;padding:12px 16px;border-radius:14px;font-weight:600;text-align:center" onclick="navigate('feed')">${t('learnBtn')}</button>
       </div>
     </div>
-    <div class="mode-selector">
+    <div style="display:flex;justify-content:center;gap:16px;margin:20px 0 8px">
       ${['dog', 'cat', 'human'].map(m => {
+    const modeColors = { dog: { bg: '#E8F5E9', ring: '#5BB89A' }, cat: { bg: '#FFF3E0', ring: '#FFB74D' }, human: { bg: '#EDE7F6', ring: '#9C7BDB' } };
+    const c = modeColors[m];
+    const isActive = state.mode === m;
     const modeIcons = {
-      dog: `<svg viewBox="0 0 80 80" width="64" height="64">
-            <ellipse cx="40" cy="52" rx="22" ry="18" fill="#F5E6D3" stroke="#D4C0A8" stroke-width="1.5"/>
-            <ellipse cx="40" cy="35" rx="18" ry="16" fill="#F5E6D3" stroke="#D4C0A8" stroke-width="1.5"/>
-            <path d="M22 28c-6-12-14-8-12-2s6 12 12 10" fill="#E8D5BF" stroke="#D4C0A8" stroke-width="1"/>
-            <path d="M58 28c6-12 14-8 12-2s-6 12-12 10" fill="#E8D5BF" stroke="#D4C0A8" stroke-width="1"/>
-            <circle cx="34" cy="33" r="2.5" fill="#5D4037"/>
-            <circle cx="46" cy="33" r="2.5" fill="#5D4037"/>
-            <circle cx="33" cy="32" r="0.8" fill="#fff"/>
-            <circle cx="45" cy="32" r="0.8" fill="#fff"/>
-            <ellipse cx="40" cy="38" rx="3" ry="2" fill="#8B6F5E"/>
-            <path d="M37 41c1.5 2 4.5 2 6 0" stroke="#8B6F5E" stroke-width="1" fill="none" stroke-linecap="round"/>
-            <circle cx="28" cy="38" r="4" fill="#FFB5B5" opacity="0.4"/>
-            <circle cx="52" cy="38" r="4" fill="#FFB5B5" opacity="0.4"/>
+      dog: `<svg viewBox="0 0 80 80" width="48" height="48">
+            <ellipse cx="40" cy="52" rx="22" ry="18" fill="#A8E6CF"/>
+            <ellipse cx="40" cy="35" rx="18" ry="16" fill="#A8E6CF"/>
+            <path d="M22 28c-6-12-14-8-12-2s6 12 12 10" fill="#7DD3B0"/>
+            <path d="M58 28c6-12 14-8 12-2s-6 12-12 10" fill="#7DD3B0"/>
+            <circle cx="34" cy="33" r="2.8" fill="#2E7D5A"/>
+            <circle cx="46" cy="33" r="2.8" fill="#2E7D5A"/>
+            <circle cx="33" cy="32" r="0.9" fill="#fff"/>
+            <circle cx="45" cy="32" r="0.9" fill="#fff"/>
+            <ellipse cx="40" cy="38" rx="3.5" ry="2.2" fill="#5BB89A"/>
+            <path d="M37 41c1.5 2 4.5 2 6 0" stroke="#5BB89A" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+            <circle cx="28" cy="38" r="4" fill="#FFB5B5" opacity="0.5"/>
+            <circle cx="52" cy="38" r="4" fill="#FFB5B5" opacity="0.5"/>
           </svg>`,
-      cat: `<svg viewBox="0 0 80 80" width="64" height="64">
-            <ellipse cx="40" cy="52" rx="20" ry="16" fill="#FFE0B2" stroke="#E6C990" stroke-width="1.5"/>
-            <ellipse cx="40" cy="36" rx="18" ry="16" fill="#FFE0B2" stroke="#E6C990" stroke-width="1.5"/>
-            <path d="M22 26L18 10l14 12z" fill="#FFE0B2" stroke="#E6C990" stroke-width="1.2"/>
-            <path d="M58 26L62 10l-14 12z" fill="#FFE0B2" stroke="#E6C990" stroke-width="1.2"/>
-            <path d="M21 12l2 5" stroke="#FFB74D" stroke-width="1.5"/>
-            <path d="M59 12l-2 5" stroke="#FFB74D" stroke-width="1.5"/>
-            <circle cx="34" cy="34" r="2.5" fill="#5D4037"/>
-            <circle cx="46" cy="34" r="2.5" fill="#5D4037"/>
+      cat: `<svg viewBox="0 0 80 80" width="48" height="48">
+            <ellipse cx="40" cy="52" rx="20" ry="16" fill="#FFD3B6"/>
+            <ellipse cx="40" cy="36" rx="18" ry="16" fill="#FFD3B6"/>
+            <path d="M22 26L18 10l14 12z" fill="#FFB997"/>
+            <path d="M58 26L62 10l-14 12z" fill="#FFB997"/>
+            <circle cx="34" cy="34" r="2.8" fill="#E65100"/>
+            <circle cx="46" cy="34" r="2.8" fill="#E65100"/>
+            <circle cx="33" cy="33" r="0.9" fill="#fff"/>
+            <circle cx="45" cy="33" r="0.9" fill="#fff"/>
+            <ellipse cx="40" cy="39" rx="2.5" ry="1.5" fill="#FF7043"/>
+            <path d="M37 41c1.5 2 4.5 2 6 0" stroke="#FF7043" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+            <line x1="18" y1="36" x2="28" y2="38" stroke="#FFAB91" stroke-width="1"/>
+            <line x1="18" y1="40" x2="28" y2="40" stroke="#FFAB91" stroke-width="1"/>
+            <line x1="62" y1="36" x2="52" y2="38" stroke="#FFAB91" stroke-width="1"/>
+            <line x1="62" y1="40" x2="52" y2="40" stroke="#FFAB91" stroke-width="1"/>
+            <circle cx="28" cy="40" r="4" fill="#FFAB91" opacity="0.5"/>
+            <circle cx="52" cy="40" r="4" fill="#FFAB91" opacity="0.5"/>
+          </svg>`,
+      human: `<svg viewBox="0 0 80 80" width="48" height="48">
+            <ellipse cx="40" cy="52" rx="22" ry="18" fill="#D1C4E9"/>
+            <ellipse cx="40" cy="34" rx="17" ry="16" fill="#D1C4E9"/>
+            <path d="M23 30c0-14 10-20 17-20s17 6 17 20" fill="#7E57C2"/>
+            <circle cx="34" cy="34" r="2.4" fill="#4A148C"/>
+            <circle cx="46" cy="34" r="2.4" fill="#4A148C"/>
             <circle cx="33" cy="33" r="0.8" fill="#fff"/>
             <circle cx="45" cy="33" r="0.8" fill="#fff"/>
-            <ellipse cx="40" cy="39" rx="2.5" ry="1.5" fill="#F48FB1"/>
-            <path d="M37 41c1.5 2 4.5 2 6 0" stroke="#D4868C" stroke-width="1" fill="none" stroke-linecap="round"/>
-            <line x1="18" y1="36" x2="28" y2="38" stroke="#D4C0A8" stroke-width="0.8"/>
-            <line x1="18" y1="40" x2="28" y2="40" stroke="#D4C0A8" stroke-width="0.8"/>
-            <line x1="62" y1="36" x2="52" y2="38" stroke="#D4C0A8" stroke-width="0.8"/>
-            <line x1="62" y1="40" x2="52" y2="40" stroke="#D4C0A8" stroke-width="0.8"/>
-            <circle cx="28" cy="40" r="4" fill="#FFB5B5" opacity="0.4"/>
-            <circle cx="52" cy="40" r="4" fill="#FFB5B5" opacity="0.4"/>
-          </svg>`,
-      human: `<svg viewBox="0 0 80 80" width="64" height="64">
-            <ellipse cx="40" cy="52" rx="22" ry="18" fill="#FCEBD5" stroke="#E6C990" stroke-width="1.5"/>
-            <ellipse cx="40" cy="34" rx="17" ry="16" fill="#FCEBD5" stroke="#E6C990" stroke-width="1.5"/>
-            <path d="M23 30c0-14 10-20 17-20s17 6 17 20" fill="#8B6F5E" stroke="#6D5545" stroke-width="1"/>
-            <circle cx="34" cy="34" r="2.2" fill="#5D4037"/>
-            <circle cx="46" cy="34" r="2.2" fill="#5D4037"/>
-            <circle cx="33" cy="33" r="0.7" fill="#fff"/>
-            <circle cx="45" cy="33" r="0.7" fill="#fff"/>
-            <path d="M37 40c1.5 1.5 4.5 1.5 6 0" stroke="#D4868C" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-            <circle cx="28" cy="38" r="4" fill="#FFB5B5" opacity="0.4"/>
-            <circle cx="52" cy="38" r="4" fill="#FFB5B5" opacity="0.4"/>
+            <path d="M37 40c1.5 1.5 4.5 1.5 6 0" stroke="#CE93D8" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+            <circle cx="28" cy="38" r="4" fill="#E1BEE7" opacity="0.5"/>
+            <circle cx="52" cy="38" r="4" fill="#E1BEE7" opacity="0.5"/>
           </svg>`
     };
-    return `
-        <div class="mode-card ${state.mode === m ? 'active' : ''}" onclick="state.mode='${m}';render()">
-          <div class="mode-icon">${modeIcons[m]}</div>
-          <div class="mode-label">${t('mode' + m.charAt(0).toUpperCase() + m.slice(1))}</div>
-        </div>`;
+    return `<div onclick="haptic('light');state.mode='${m}';render()" style="width:68px;height:68px;border-radius:50%;background:${c.bg};display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s ease;${isActive ? `box-shadow:0 0 0 3px ${c.ring};transform:scale(1.12)` : 'opacity:0.7'}">${modeIcons[m]}</div>`;
   }).join('')}
     </div>
-    <div class="features-grid">
+    <div class="features-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       ${(() => {
       const lastAnalysis = DB.history.filter(h => h.pet === state.mode).slice(-1)[0];
       const healthScore = lastAnalysis ? lastAnalysis.score : null;
@@ -1269,51 +1280,51 @@ function renderLanding() {
       return [
         // 1. Health Score
         `<div class="card feature-card" onclick="navigate('analyze')" style="cursor:pointer">
-            <div class="feature-icon"><svg viewBox="0 0 40 40" width="36" height="36"><rect x="6" y="8" width="28" height="24" rx="3" fill="#E8F5E9" stroke="#5BB89A" stroke-width="1.5"/><circle cx="20" cy="20" r="5" fill="none" stroke="#5BB89A" stroke-width="1.5"/><circle cx="20" cy="20" r="1.5" fill="#5BB89A"/></svg></div>
-            <div class="feature-title">${t('feat1T')}</div>
-            <div class="feature-live" style="margin-top:8px;font-size:0.85rem;color:var(--text-secondary)">
-              ${healthScore !== null ? `<span style="font-size:1.6rem;font-weight:800;color:${healthScore >= 70 ? 'var(--accent-mint)' : healthScore >= 40 ? 'var(--accent-peach)' : 'var(--accent-coral)'}">${healthScore}</span><span style="font-size:0.8rem;color:var(--text-muted)"> /100</span>` : `<span style="color:var(--text-muted);font-size:0.8rem">${state.lang === 'ko' ? '분석 기록 없음' : 'No data yet'}</span>`}
+            <div class="feature-icon" style="margin-bottom:4px"><svg viewBox="0 0 40 40" width="28" height="28"><rect x="6" y="8" width="28" height="24" rx="3" fill="#E8F5E9" stroke="#5BB89A" stroke-width="1.5"/><circle cx="20" cy="20" r="5" fill="none" stroke="#5BB89A" stroke-width="1.5"/><circle cx="20" cy="20" r="1.5" fill="#5BB89A"/></svg></div>
+            <div class="feature-title" style="font-size:0.8rem">${t('feat1T')}</div>
+            <div class="feature-live" style="margin-top:4px;font-size:0.8rem;color:var(--text-secondary)">
+              ${healthScore !== null ? `<span style="font-size:1.4rem;font-weight:800;color:${healthScore >= 70 ? 'var(--accent-mint)' : healthScore >= 40 ? 'var(--accent-peach)' : 'var(--accent-coral)'}">${healthScore}</span><span style="font-size:0.7rem;color:var(--text-muted)"> /100</span>` : `<span style="color:var(--text-muted);font-size:0.7rem">${state.lang === 'ko' ? '기록 없음' : 'No data'}</span>`}
             </div>
           </div>`,
         // 2. Pattern Tracking
         `<div class="card feature-card" onclick="navigate('calendar')" style="cursor:pointer">
-            <div class="feature-icon"><svg viewBox="0 0 40 40" width="36" height="36"><rect x="6" y="8" width="28" height="26" rx="3" fill="#FFF8E1" stroke="#D4A853" stroke-width="1.5"/><line x1="6" y1="16" x2="34" y2="16" stroke="#D4A853" stroke-width="1.5"/><circle cx="20" cy="25" r="3" fill="#5BB89A"/></svg></div>
-            <div class="feature-title">${t('feat2T')}</div>
-            <div class="feature-live" style="margin-top:8px;display:flex;gap:12px;font-size:0.8rem">
-              <span style="color:var(--accent-mint);font-weight:700">🔥 ${streak}${state.lang === 'ko' ? '일 ' : ' days'}</span>
-              <span style="color:var(--text-muted)">${state.lang === 'ko' ? '이번주' : 'この週'} ${weekRecords}/7</span>
+            <div class="feature-icon" style="margin-bottom:4px"><svg viewBox="0 0 40 40" width="28" height="28"><rect x="6" y="8" width="28" height="26" rx="3" fill="#FFF8E1" stroke="#D4A853" stroke-width="1.5"/><line x1="6" y1="16" x2="34" y2="16" stroke="#D4A853" stroke-width="1.5"/><circle cx="20" cy="25" r="3" fill="#5BB89A"/></svg></div>
+            <div class="feature-title" style="font-size:0.8rem">${t('feat2T')}</div>
+            <div class="feature-live" style="margin-top:4px;font-size:0.75rem">
+              <div style="color:var(--accent-mint);font-weight:700">🔥 ${streak}${state.lang === 'ko' ? '일' : 'd'}</div>
+              <div style="color:var(--text-muted);font-size:0.7rem">${state.lang === 'ko' ? '이번주' : 'Week'} ${weekRecords}/7</div>
             </div>
           </div>`,
         // 3. Community Feed
         `<div class="card feature-card" onclick="navigate('feed')" style="cursor:pointer">
-            <div class="feature-icon"><svg viewBox="0 0 40 40" width="36" height="36"><path d="M8 10h24M8 18h18M8 26h21" stroke="#8B7355" stroke-width="2.5" stroke-linecap="round"/><circle cx="32" cy="26" r="4" fill="#FFB5B5" stroke="#D4868C" stroke-width="1.2"/></svg></div>
-            <div class="feature-title">${t('feat3T')}</div>
-            <div class="feature-live" style="margin-top:8px;font-size:0.75rem;color:var(--text-muted)">
-              ${recentPosts.length > 0 ? recentPosts.map(p => `<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">• ${p.author || 'User'}: ${(p.analysis || '').slice(0, 20)}...</div>`).join('') : (state.lang === 'ko' ? '아직 글이 없어요' : 'No posts yet')}
+            <div class="feature-icon" style="margin-bottom:4px"><svg viewBox="0 0 40 40" width="28" height="28"><path d="M8 10h24M8 18h18M8 26h21" stroke="#8B7355" stroke-width="2.5" stroke-linecap="round"/><circle cx="32" cy="26" r="4" fill="#FFB5B5" stroke="#D4868C" stroke-width="1.2"/></svg></div>
+            <div class="feature-title" style="font-size:0.8rem">${t('feat3T')}</div>
+            <div class="feature-live" style="margin-top:4px;font-size:0.7rem;color:var(--text-muted)">
+              ${recentPosts.length > 0 ? recentPosts.slice(0, 2).map(p => `<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px">• ${(p.analysis || '').slice(0, 15)}...</div>`).join('') : (state.lang === 'ko' ? '아직 글이 없어요' : 'No posts yet')}
             </div>
           </div>`,
         // 4. Multi-pet Profile
         `<div class="card feature-card" onclick="navigate('more')" style="cursor:pointer">
-            <div class="feature-icon"><svg viewBox="0 0 40 40" width="36" height="36"><circle cx="14" cy="14" r="4" fill="#F5E6D3" stroke="#D4C0A8" stroke-width="1.5"/><circle cx="26" cy="14" r="4" fill="#F5E6D3" stroke="#D4C0A8" stroke-width="1.5"/><circle cx="14" cy="26" r="4" fill="#F5E6D3" stroke="#D4C0A8" stroke-width="1.5"/><circle cx="26" cy="26" r="4" fill="#F5E6D3" stroke="#D4C0A8" stroke-width="1.5"/><circle cx="20" cy="20" r="2.5" fill="#D4C0A8"/></svg></div>
-            <div class="feature-title">${t('feat4T')}</div>
-            <div class="feature-live" style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">
-              ${pets.length > 0 ? pets.map(p => `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--bg-secondary);padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:600">${p.species === 'dog' ? '🐶' : p.species === 'cat' ? '🐱' : '👤'} ${p.name}</span>`).join('') : `<span style="color:var(--text-muted);font-size:0.8rem">${state.lang === 'ko' ? '등록된 반려동물 없음' : 'No pets registered'}</span>`}
+            <div class="feature-icon" style="margin-bottom:4px"><svg viewBox="0 0 40 40" width="28" height="28"><circle cx="14" cy="14" r="4" fill="#F5E6D3" stroke="#D4C0A8" stroke-width="1.5"/><circle cx="26" cy="14" r="4" fill="#F5E6D3" stroke="#D4C0A8" stroke-width="1.5"/><circle cx="14" cy="26" r="4" fill="#F5E6D3" stroke="#D4C0A8" stroke-width="1.5"/><circle cx="26" cy="26" r="4" fill="#F5E6D3" stroke="#D4C0A8" stroke-width="1.5"/><circle cx="20" cy="20" r="2.5" fill="#D4C0A8"/></svg></div>
+            <div class="feature-title" style="font-size:0.8rem">${t('feat4T')}</div>
+            <div class="feature-live" style="margin-top:4px;display:flex;gap:3px;flex-wrap:wrap">
+              ${pets.length > 0 ? pets.map(p => `<span style="display:inline-flex;align-items:center;gap:2px;background:var(--bg-secondary);padding:2px 8px;border-radius:10px;font-size:0.65rem;font-weight:600">${p.species === 'dog' ? '🐶' : p.species === 'cat' ? '🐱' : '👤'} ${p.name}</span>`).join('') : `<span style="color:var(--text-muted);font-size:0.7rem">${state.lang === 'ko' ? '등록 없음' : 'None'}</span>`}
             </div>
           </div>`,
         // 5. Vet Report
         `<div class="card feature-card" onclick="navigate('stats')" style="cursor:pointer">
-            <div class="feature-icon"><svg viewBox="0 0 40 40" width="36" height="36"><rect x="8" y="6" width="24" height="28" rx="2" fill="#E3F2FD" stroke="#6DA9D2" stroke-width="1.5"/><line x1="13" y1="14" x2="27" y2="14" stroke="#6DA9D2" stroke-width="1.5" stroke-linecap="round"/><line x1="13" y1="20" x2="24" y2="20" stroke="#6DA9D2" stroke-width="1.5" stroke-linecap="round"/><line x1="13" y1="26" x2="26" y2="26" stroke="#6DA9D2" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-            <div class="feature-title">${t('feat5T')}</div>
-            <div class="feature-live" style="margin-top:8px;font-size:0.75rem;color:var(--text-muted)">
-              ${recentReports.length > 0 ? recentReports.map(r => `<div style="margin-bottom:2px">• ${new Date(r.date).toLocaleDateString()} — ${r.score}점</div>`).join('') : (state.lang === 'ko' ? '리포트 없음' : 'No reports')}
+            <div class="feature-icon" style="margin-bottom:4px"><svg viewBox="0 0 40 40" width="28" height="28"><rect x="8" y="6" width="24" height="28" rx="2" fill="#E3F2FD" stroke="#6DA9D2" stroke-width="1.5"/><line x1="13" y1="14" x2="27" y2="14" stroke="#6DA9D2" stroke-width="1.5" stroke-linecap="round"/><line x1="13" y1="20" x2="24" y2="20" stroke="#6DA9D2" stroke-width="1.5" stroke-linecap="round"/><line x1="13" y1="26" x2="26" y2="26" stroke="#6DA9D2" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+            <div class="feature-title" style="font-size:0.8rem">${t('feat5T')}</div>
+            <div class="feature-live" style="margin-top:4px;font-size:0.7rem;color:var(--text-muted)">
+              ${recentReports.length > 0 ? recentReports.slice(0, 2).map(r => `<div style="margin-bottom:1px">• ${r.score}점</div>`).join('') : (state.lang === 'ko' ? '리포트 없음' : 'No reports')}
             </div>
           </div>`,
         // 6. World Poop Map
         `<div class="card feature-card" onclick="navigate('worldmap')" style="cursor:pointer">
-            <div class="feature-icon"><svg viewBox="0 0 40 40" width="36" height="36"><circle cx="20" cy="20" r="14" fill="#E3F2FD" stroke="#6DA9D2" stroke-width="1.5"/><path d="M8 15c5-2 8 3 12 1s5-4 12-2" stroke="#6DA9D2" stroke-width="1.3" fill="none"/><path d="M7 23c6 2 8-3 13-1s6 3 13 0" stroke="#6DA9D2" stroke-width="1.3" fill="none"/></svg></div>
-            <div class="feature-title">${t('feat6T')}</div>
-            <div class="feature-live" style="margin-top:8px;font-size:0.75rem;color:var(--text-muted)">
-              ${topCountries.map((c, i) => `<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span>${c.flag}</span><span style="flex:1">${c.name}</span><span style="font-weight:700;color:var(--accent-mint)">${c.score}</span></div>`).join('')}
+            <div class="feature-icon" style="margin-bottom:4px"><svg viewBox="0 0 40 40" width="28" height="28"><circle cx="20" cy="20" r="14" fill="#E3F2FD" stroke="#6DA9D2" stroke-width="1.5"/><path d="M8 15c5-2 8 3 12 1s5-4 12-2" stroke="#6DA9D2" stroke-width="1.3" fill="none"/><path d="M7 23c6 2 8-3 13-1s6 3 13 0" stroke="#6DA9D2" stroke-width="1.3" fill="none"/></svg></div>
+            <div class="feature-title" style="font-size:0.8rem">${t('feat6T')}</div>
+            <div class="feature-live" style="margin-top:4px;font-size:0.7rem;color:var(--text-muted)">
+              ${topCountries.map(c => `<div style="display:flex;align-items:center;gap:4px;margin-bottom:1px"><span>${c.flag}</span><span style="flex:1;font-size:0.65rem">${c.name}</span><span style="font-weight:700;color:var(--accent-mint);font-size:0.7rem">${c.score}</span></div>`).join('')}
             </div>
           </div>`,
       ].join('');
@@ -1325,22 +1336,28 @@ function renderLanding() {
 
 // ── Page: Analyze ──
 function renderAnalyze() {
+  const modeBtnColors = { dog: { bg: '#E8F5E9', border: '#5BB89A', text: '#2E7D5A' }, cat: { bg: '#FFF3E0', border: '#FFB74D', text: '#E65100' }, human: { bg: '#EDE7F6', border: '#9C7BDB', text: '#4A148C' } };
   return `<div class="page"><div class="analyze-container">
     <h1 class="section-title">${t('uploadTitle')}</h1>
-    <div class="pet-select" style="display:flex;gap:8px;flex-wrap:nowrap;">
-      ${['dog', 'cat', 'human'].map(m => `
-        <button class="pet-btn ${state.mode === m ? 'active' : ''}" onclick="state.mode='${m}';render()" style="flex:1;min-width:0;white-space:nowrap;font-size:0.85rem;padding:8px 6px;">${typeIcon(m)} ${t('mode' + m.charAt(0).toUpperCase() + m.slice(1)).replace(/^[^\s]+\s/, '')}</button>`).join('')}
+    <div style="display:flex;gap:10px;justify-content:center;margin:12px 0 16px">
+      ${['dog', 'cat', 'human'].map(m => {
+    const mc = modeBtnColors[m];
+    const isA = state.mode === m;
+    const labels = { dog: '🐕 ' + (state.lang === 'ko' ? '강아지' : 'Dog'), cat: '🐱 ' + (state.lang === 'ko' ? '고양이' : 'Cat'), human: '👤 ' + (state.lang === 'ko' ? '사람' : 'Human') };
+    return `<button onclick="state.mode='${m}';render()" style="flex:1;max-width:110px;padding:10px 8px;border-radius:12px;font-size:0.82rem;font-weight:${isA ? '700' : '500'};border:2px solid ${isA ? mc.border : 'transparent'};background:${isA ? mc.bg : 'var(--bg-secondary,#f5f5f5)'};color:${isA ? mc.text : 'var(--text-secondary)'};cursor:pointer;transition:all 0.2s">${labels[m]}</button>`;
+  }).join('')}
     </div>
-    <div class="upload-zone" id="uploadZone" onclick="showPhotoPickerPopup()">
-      <input type="file" accept="image/*" class="upload-input" id="fileInput" onchange="handleFileSelect(event)" style="display:none">
+    <div class="upload-zone" id="uploadZone" onclick="showPhotoPickerPopup()" style="min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--accent-mint,#5BB89A);border-radius:16px;padding:30px 20px;cursor:pointer;background:var(--bg-secondary,#f9fafb)">
+      <input type="file" accept="image/*" multiple class="upload-input" id="fileInput" onchange="handleFileSelect(event)" style="display:none">
       <input type="file" accept="image/*" capture="environment" class="upload-input" id="cameraInput" onchange="handleFileSelect(event)" style="display:none">
-      <div class="upload-icon">📸</div>
-      <div class="upload-text">${t('uploadText')}</div>
-      <div class="upload-hint">${t('uploadHint')}</div>
+      <div style="font-size:3rem;margin-bottom:10px">📷</div>
+      <div style="font-weight:700;font-size:0.95rem;color:var(--text-primary)">${t('uploadText')}</div>
+      <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:6px;text-align:center;line-height:1.4">${t('uploadHint')}</div>
     </div>
+    <div id="photoThumbnails" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;justify-content:center"></div>
     <img class="preview-img" id="previewImg">
     <div class="analyze-btn-wrap">
-      <button class="btn-primary" id="analyzeBtn" onclick="runAnalysis()" style="display:none">${t('analyzeBtn')}</button>
+      <button class="btn-primary" id="analyzeBtn" onclick="runAnalysis()" style="display:none;width:100%;padding:14px;border-radius:14px;font-size:1rem;font-weight:700">${t('analyzeBtn')}</button>
     </div>
     <div class="analysis-result" id="analysisResult"></div>
   </div></div>
@@ -1349,13 +1366,17 @@ function renderAnalyze() {
     <div class="loading-text">${t('analyzing')}</div>
     <div style="color:var(--text-secondary);font-size:0.85rem;margin-top:8px">${t('analyzingDesc')}</div></div>
   </div>
-  <!-- Photo picker popup -->
-  <div id="photoPickerPopup" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;">
-    <div style="background:var(--card-bg);border-radius:16px;padding:24px;margin:20px;max-width:320px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
-      <div style="font-size:1.1rem;font-weight:700;margin-bottom:20px;">📸 사진 추가</div>
-      <button onclick="pickFromGallery()" style="width:100%;padding:14px;margin-bottom:10px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-size:1rem;font-weight:600;cursor:pointer;">🖼️ 갤러리에서 선택</button>
-      <button onclick="pickFromCamera()" style="width:100%;padding:14px;margin-bottom:10px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-size:1rem;font-weight:600;cursor:pointer;">📷 사진 촬영</button>
-      <button onclick="closePhotoPickerPopup()" style="width:100%;padding:12px;border:none;border-radius:12px;background:var(--card-bg);color:var(--text-secondary);font-size:0.95rem;cursor:pointer;border:1px solid var(--border);">취소</button>
+  <!-- iOS-style Photo Picker Action Sheet -->
+  <div id="photoPickerPopup" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:flex-end;justify-content:center">
+    <div style="position:absolute;bottom:0;left:0;right:0;padding:12px;max-width:400px;margin:0 auto">
+      <div style="background:var(--card-bg,#fff);border-radius:14px;overflow:hidden;margin-bottom:8px">
+        <div style="padding:14px;text-align:center;border-bottom:1px solid rgba(120,120,128,0.15)">
+          <div style="font-size:0.75rem;color:var(--text-secondary)">📸 ${state.lang === 'ko' ? '사진 추가' : 'Add Photo'}</div>
+        </div>
+        <button onclick="pickFromGallery()" style="width:100%;padding:16px;border:none;background:transparent;font-size:1rem;color:#007AFF;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(120,120,128,0.15)">🖼️ ${state.lang === 'ko' ? '갤러리에서 선택' : 'Choose from Gallery'}</button>
+        <button onclick="pickFromCamera()" style="width:100%;padding:16px;border:none;background:transparent;font-size:1rem;color:#007AFF;font-weight:500;cursor:pointer">📷 ${state.lang === 'ko' ? '카메라로 촬영' : 'Take Photo'}</button>
+      </div>
+      <button onclick="closePhotoPickerPopup()" style="width:100%;padding:16px;border:none;border-radius:14px;background:var(--card-bg,#fff);font-size:1rem;color:#007AFF;font-weight:700;cursor:pointer">${state.lang === 'ko' ? '취소' : 'Cancel'}</button>
     </div>
   </div>`;
 }
@@ -2893,24 +2914,32 @@ function renderMore() {
 
   return `<div class="page">
     <!-- Pet Profile -->
-    ${DB.pets.length > 0 ? `
+    ${DB.pets.length > 0 ? (() => {
+      const activePet = DB.pets.find(p => p.id === DB.activePet) || DB.pets[0];
+      return `
     <div class="card" style="padding:16px;margin-bottom:16px">
       <div style="display:flex;align-items:center;gap:12px">
-        <div style="font-size:2rem">${typeIcon(state.mode)}</div>
+        ${activePet.photo ? `<div style="width:52px;height:52px;border-radius:50%;overflow:hidden;border:2px solid var(--accent-mint);flex-shrink:0"><img src="${activePet.photo}" style="width:100%;height:100%;object-fit:cover"></div>` : `<div style="font-size:2rem">${typeIcon(state.mode)}</div>`}
         <div style="flex:1">
           <div style="font-weight:700;font-size:1.1rem">${getActivePetName()}</div>
-          <div style="font-size:0.8rem;color:var(--text-muted)">Lv.${getLevel()} · ${DB.xp} XP</div>
+          <div style="font-size:0.75rem;color:var(--text-muted)">${activePet.breed || ''} ${activePet.birthday ? '· ' + activePet.birthday : ''} ${activePet.weight ? '· ' + activePet.weight + 'kg' : ''}</div>
+          <div style="font-size:0.7rem;color:var(--text-muted)">Lv.${getLevel()} · ${DB.xp} XP</div>
         </div>
         <button class="btn-secondary btn-sm" onclick="showAddPetModal()">➕</button>
       </div>
-      ${DB.pets.length > 1 ? `<div style="display:flex;gap:8px;margin-top:12px;overflow-x:auto">
-        ${DB.pets.map(p => `<button class="${p.id === DB.activePet ? 'btn-primary' : 'btn-secondary'}" style="font-size:0.8rem;padding:6px 12px;white-space:nowrap" onclick="DB.activePet='${p.id}';state.mode='${p.species}';saveDB('activePet');render()">${p.name}</button>`).join('')}
+      ${DB.pets.length > 1 ? `<div style="display:flex;gap:6px;margin-top:10px;overflow-x:auto;padding-bottom:4px">
+        ${DB.pets.map(p => `<button class="${p.id === DB.activePet ? 'btn-primary' : 'btn-secondary'}" style="font-size:0.75rem;padding:5px 10px;white-space:nowrap;display:flex;align-items:center;gap:4px" onclick="DB.activePet='${p.id}';state.mode='${p.species}';saveDB('activePet');render()">${p.photo ? '<img src="' + p.photo + '" style="width:18px;height:18px;border-radius:50%;object-fit:cover">' : typeIcon(p.species)} ${p.name}</button>`).join('')}
       </div>` : ''}
-    </div>` : `
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn-secondary" style="flex:1;font-size:0.75rem;padding:8px" onclick="exportPDF()">📄 ${state.lang === 'ko' ? 'PDF 리포트' : 'PDF Report'}</button>
+        <button class="btn-secondary" style="flex:1;font-size:0.75rem;padding:8px" onclick="shareAnalysis()">↗️ ${state.lang === 'ko' ? '공유' : 'Share'}</button>
+      </div>
+    </div>`;
+    })() : `
     <div class="card" style="padding:20px;text-align:center;margin-bottom:16px">
       <div style="font-size:2rem;margin-bottom:8px">🐾</div>
-      <div style="font-weight:600;margin-bottom:8px">${state.lang === 'ko' ? '반려동물을 등록하세요!' : 'Register your pet!'}</div>
-      <button class="btn-primary" onclick="showAddPetModal()" style="font-size:0.85rem">➕ ${state.lang === 'ko' ? '펫 등록' : 'Add Pet'}</button>
+      <div style="font-weight:600;margin-bottom:8px">${state.lang === 'ko' ? '프로필을 등록하세요!' : 'Register your profile!'}</div>
+      <button class="btn-primary" onclick="showAddPetModal()" style="font-size:0.85rem">➕ ${state.lang === 'ko' ? '프로필 등록' : 'Add Profile'}</button>
     </div>`}
     <!-- Daily Challenge -->
     <div class="card dc-card">
@@ -2954,7 +2983,11 @@ function renderMore() {
               <div class="friend-name">${f.user} <span class="friend-level">Lv.${f.level}</span></div>
               <div class="friend-status ${f.pooping ? 'pooping' : ''}">${f.pooping ? t('friendStatus') : (f.status === 'online' ? '🟢 Online' : '⚫ Offline')}</div>
             </div>
-            <button class="btn-cheer" onclick="cheerFriend('${f.user}')">${t('friendCheer')}</button>
+            <div style="display:flex;gap:4px;align-items:center">
+              <button style="background:none;font-size:1.1rem;padding:4px;cursor:pointer" onclick="toggleFavFriend('${f.user}')">${(DB.favFriends || []).includes(f.user) ? '⭐' : '☆'}</button>
+              <button style="background:none;font-size:1rem;padding:4px;cursor:pointer" onclick="openChat('${f.user}')">💬</button>
+              <button class="btn-cheer" onclick="cheerFriend('${f.user}')">${t('friendCheer')}</button>
+            </div>
           </div>`).join('')}
       </div>
     </div>
@@ -3000,9 +3033,17 @@ function showAddPetModal() {
   modal.id = 'addPetModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center';
   modal.innerHTML = `
-    <div style="background:var(--bg-card);border-radius:var(--radius-xl);padding:28px;max-width:380px;width:90%;position:relative">
+    <div style="background:var(--bg-card);border-radius:var(--radius-xl);padding:28px;max-width:380px;width:90%;position:relative;max-height:80vh;overflow-y:auto">
       <button onclick="document.getElementById('addPetModal').remove()" style="position:absolute;top:12px;right:16px;background:none;font-size:1.2rem;color:var(--text-muted)">✕</button>
-      <h3 style="margin-bottom:16px">🐾 ${isKo ? '펫 등록' : 'Add Pet'}</h3>
+      <h3 style="margin-bottom:16px">🐾 ${isKo ? '프로필 등록' : 'Add Profile'}</h3>
+      <!-- Photo Upload -->
+      <div style="text-align:center;margin-bottom:14px">
+        <div id="petPhotoPreview" style="width:80px;height:80px;border-radius:50%;background:var(--bg-secondary);margin:0 auto 8px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px dashed var(--border-soft);cursor:pointer" onclick="document.getElementById('petPhotoInput').click()">
+          <span style="font-size:2rem;color:var(--text-muted)">📷</span>
+        </div>
+        <input type="file" id="petPhotoInput" accept="image/*" style="display:none" onchange="(function(inp){if(!inp.files[0])return;var r=new FileReader();r.onload=function(e){var img=document.getElementById('petPhotoPreview');img.innerHTML='<img src=\''+e.target.result+'\' style=\'width:100%;height:100%;object-fit:cover\'>';img.dataset.photo=e.target.result;};r.readAsDataURL(inp.files[0]);})(this)">
+        <div style="font-size:0.7rem;color:var(--text-muted)">${isKo ? '사진 탭하여 추가' : 'Tap to add photo'}</div>
+      </div>
       <input id="petName" placeholder="${isKo ? '이름' : 'Name'}" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px;font-family:var(--font);background:var(--bg-secondary);color:var(--text-primary);box-sizing:border-box">
       <select id="petSpecies" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px;font-family:var(--font);background:var(--bg-secondary);color:var(--text-primary)">
         <option value="dog">🐕 ${isKo ? '강아지' : 'Dog'}</option>
@@ -3010,11 +3051,15 @@ function showAddPetModal() {
         <option value="human">👤 ${isKo ? '사람' : 'Human'}</option>
       </select>
       <input id="petBreed" placeholder="${isKo ? '품종' : 'Breed'}" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px;font-family:var(--font);background:var(--bg-secondary);color:var(--text-primary);box-sizing:border-box">
+      <input id="petBirthday" type="date" placeholder="${isKo ? '생일' : 'Birthday'}" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px;font-family:var(--font);background:var(--bg-secondary);color:var(--text-primary);box-sizing:border-box">
       <input id="petWeight" type="number" placeholder="${isKo ? '몸무게 (kg)' : 'Weight (kg)'}" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;margin-bottom:16px;font-family:var(--font);background:var(--bg-secondary);color:var(--text-primary);box-sizing:border-box">
       <button class="btn-primary" style="width:100%;justify-content:center" onclick="
         const name=document.getElementById('petName').value;
         if(!name){alert('${isKo ? '이름을 입력하세요' : 'Enter a name'}');return;}
-        addPet(name,document.getElementById('petSpecies').value,document.getElementById('petBreed').value,'',document.getElementById('petWeight').value);
+        const photoEl=document.getElementById('petPhotoPreview');
+        const photo=photoEl.dataset.photo||'';
+        addPet(name,document.getElementById('petSpecies').value,document.getElementById('petBreed').value,document.getElementById('petBirthday').value,document.getElementById('petWeight').value,photo);
+        haptic('success');
         document.getElementById('addPetModal').remove();
         render();
       ">${isKo ? '등록' : 'Register'}</button>
@@ -3041,7 +3086,113 @@ function cheerFriend(name) {
   const f = DB.friends.find(fr => fr.user === name);
   if (f) { f.cheerCount = (f.cheerCount || 0) + 1; saveDB('friends'); }
   showToast(`📣 Cheer sent to ${name}!`);
+  haptic('light');
   addXP(2, 'Cheer');
+}
+
+// ── Phase 4: Friend Favorites ──
+function toggleFavFriend(name) {
+  haptic('medium');
+  const f = DB.friends.find(fr => fr.user === name) || FRIENDS_DATA.find(fr => fr.user === name);
+  if (!f) return;
+  // Check if already in favorites
+  if (!DB.favFriends) DB.favFriends = [];
+  const idx = DB.favFriends.indexOf(name);
+  if (idx >= 0) {
+    DB.favFriends.splice(idx, 1);
+    showToast(state.lang === 'ko' ? '즐겨찾기 해제!' : 'Unfavorited!');
+  } else {
+    DB.favFriends.push(name);
+    showToast(state.lang === 'ko' ? '⭐ 즐겨찾기 추가!' : '⭐ Added to favorites!');
+  }
+  localStorage.setItem('pb-fav-friends', JSON.stringify(DB.favFriends));
+  render();
+}
+
+// ── Phase 4: 1:1 Chat ──
+function openChat(friendName) {
+  haptic('light');
+  const isKo = state.lang === 'ko';
+  const chatKey = 'pb-chat-' + friendName.replace(/\s/g, '_');
+  const messages = JSON.parse(localStorage.getItem(chatKey) || '[]');
+  const modal = document.createElement('div');
+  modal.id = 'chatModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;justify-content:center';
+  modal.innerHTML = `
+    <div style="background:var(--bg-card);border-radius:20px 20px 0 0;width:100%;max-width:420px;height:70vh;display:flex;flex-direction:column">
+      <div style="padding:16px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;gap:10px">
+        <button onclick="document.getElementById('chatModal').remove()" style="background:none;font-size:1.2rem;color:var(--text-muted)">←</button>
+        <div style="font-weight:700;flex:1">${friendName}</div>
+        <span style="font-size:0.7rem;color:var(--accent-mint)">● ${isKo ? '온라인' : 'Online'}</span>
+      </div>
+      <div id="chatMessages" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px">
+        ${messages.map(m => `
+          <div style="align-self:${m.from === 'me' ? 'flex-end' : 'flex-start'};max-width:75%;padding:8px 14px;border-radius:16px;font-size:0.85rem;background:${m.from === 'me' ? 'var(--accent-mint)' : 'var(--bg-secondary)'};color:${m.from === 'me' ? '#fff' : 'var(--text-primary)'}">
+            ${m.text}
+            <div style="font-size:0.6rem;color:${m.from === 'me' ? 'rgba(255,255,255,0.7)' : 'var(--text-muted)'};margin-top:2px">${new Date(m.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div style="padding:10px;border-top:1px solid var(--border-soft);display:flex;gap:8px">
+        <input id="chatInput" placeholder="${isKo ? '메시지 입력...' : 'Type a message...'}" style="flex:1;padding:10px 14px;border:1px solid var(--border-soft);border-radius:20px;font-family:var(--font);background:var(--bg-secondary);color:var(--text-primary);box-sizing:border-box" onkeypress="if(event.key==='Enter')sendChatMsg('${friendName}')">
+        <button class="btn-primary" style="padding:8px 16px;border-radius:20px" onclick="sendChatMsg('${friendName}')">↗️</button>
+      </div>
+    </div>`;
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+  setTimeout(() => { const el = document.getElementById('chatMessages'); if (el) el.scrollTop = el.scrollHeight; }, 50);
+}
+
+function sendChatMsg(friendName) {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  haptic('light');
+  const chatKey = 'pb-chat-' + friendName.replace(/\s/g, '_');
+  const messages = JSON.parse(localStorage.getItem(chatKey) || '[]');
+  messages.push({ from: 'me', text, time: new Date().toISOString() });
+  // Simulate reply
+  setTimeout(() => {
+    const replies = state.lang === 'ko'
+      ? ['ㅋㅋ 좋아요!', '우리 아이도 오늘 했어요 💩', '건강해 보여요!', '대박 ㅋㅋㅋ', '점수 높네요!']
+      : ['Haha nice!', 'My pet did too today 💩', 'Looks healthy!', 'Great score!', 'LOL amazing'];
+    messages.push({ from: friendName, text: replies[Math.floor(Math.random() * replies.length)], time: new Date().toISOString() });
+    localStorage.setItem(chatKey, JSON.stringify(messages));
+    document.getElementById('chatModal')?.remove();
+    openChat(friendName);
+  }, 1500);
+  localStorage.setItem(chatKey, JSON.stringify(messages));
+  input.value = '';
+  document.getElementById('chatModal')?.remove();
+  openChat(friendName);
+}
+
+// ── Phase 4: Share to External SNS ──
+function shareToSNS(postContent) {
+  haptic('medium');
+  const isKo = state.lang === 'ko';
+  const text = `🐾 PoopBuddy\n${postContent}\n\n#PoopBuddy #PetHealth #GutHealth`;
+  if (navigator.share) {
+    navigator.share({ title: 'PoopBuddy', text }).catch(() => { });
+  } else {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(isKo ? '클립보드에 복사됨! SNS에 붙여넣기하세요' : 'Copied! Paste to your SNS');
+    });
+  }
+}
+
+// ── Phase 4: Toilet Review ──
+function addToiletReview(toiletId) {
+  haptic('medium');
+  const isKo = state.lang === 'ko';
+  const rating = prompt(isKo ? '평점 (1-5):' : 'Rating (1-5):');
+  if (!rating || isNaN(rating) || rating < 1 || rating > 5) return;
+  const comment = prompt(isKo ? '후기:' : 'Review:') || '';
+  const reviews = JSON.parse(localStorage.getItem('pb-toilet-reviews') || '[]');
+  reviews.push({ toiletId, rating: parseInt(rating), comment, date: new Date().toISOString() });
+  localStorage.setItem('pb-toilet-reviews', JSON.stringify(reviews));
+  showToast(isKo ? '리뷰가 등록되었습니다! ⭐' : 'Review submitted! ⭐');
+  addXP(5, 'Toilet review');
 }
 
 // ── PDF Export (i18n + real data) ── renders as in-app overlay
@@ -3540,20 +3691,55 @@ function pickFromCamera() {
 
 // ── Analysis ──
 let selectedFile = null;
+let selectedFiles = []; // multi-photo support
 let lastAnalyzedImage = null; // stores base64 DataURL of last analyzed photo
 function handleFileSelect(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  closePhotoPickerPopup(); // Always close popup after selecting
-  selectedFile = file;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    lastAnalyzedImage = ev.target.result; // save for feed posts
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+  closePhotoPickerPopup();
+  files.forEach(file => {
+    if (file.size > 10 * 1024 * 1024) { showToast(state.lang === 'ko' ? '10MB 이하 파일만 가능합니다' : 'Max 10MB per file'); return; }
+    const reader = new FileReader();
+    reader.onload = ev => {
+      selectedFiles.push({ file, dataUrl: ev.target.result });
+      selectedFile = file;
+      lastAnalyzedImage = ev.target.result;
+      updatePhotoThumbnails();
+      const p = document.getElementById('previewImg');
+      if (p) { p.src = ev.target.result; p.style.display = 'block'; }
+      const btn = document.getElementById('analyzeBtn');
+      if (btn) btn.style.display = 'inline-flex';
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function updatePhotoThumbnails() {
+  const container = document.getElementById('photoThumbnails');
+  if (!container) return;
+  container.innerHTML = selectedFiles.map((f, i) => `
+    <div style="position:relative;width:60px;height:60px;border-radius:10px;overflow:hidden;border:2px solid var(--border,#e0e0e0)">
+      <img src="${f.dataUrl}" style="width:100%;height:100%;object-fit:cover">
+      <div onclick="removePhoto(${i})" style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.6);color:#fff;font-size:0.65rem;display:flex;align-items:center;justify-content:center;cursor:pointer">✕</div>
+    </div>
+  `).join('') + `
+    <div onclick="showPhotoPickerPopup()" style="width:60px;height:60px;border-radius:10px;border:2px dashed var(--border,#ccc);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.5rem;color:var(--text-secondary)">+</div>
+  `;
+}
+function removePhoto(idx) {
+  selectedFiles.splice(idx, 1);
+  if (selectedFiles.length > 0) {
+    selectedFile = selectedFiles[selectedFiles.length - 1].file;
+    lastAnalyzedImage = selectedFiles[selectedFiles.length - 1].dataUrl;
     const p = document.getElementById('previewImg');
-    p.src = ev.target.result; p.style.display = 'block';
-    document.getElementById('analyzeBtn').style.display = 'inline-flex';
-  };
-  reader.readAsDataURL(file);
+    if (p) p.src = lastAnalyzedImage;
+  } else {
+    selectedFile = null; lastAnalyzedImage = null;
+    const p = document.getElementById('previewImg');
+    if (p) p.style.display = 'none';
+    const btn = document.getElementById('analyzeBtn');
+    if (btn) btn.style.display = 'none';
+  }
+  updatePhotoThumbnails();
 }
 
 // ── Health Database (loaded once) ──
@@ -3575,6 +3761,17 @@ function getDBText(obj, field) {
 }
 
 async function runAnalysis() {
+  // Photo validation — reject obviously non-stool images
+  if (!selectedFile && selectedFiles.length === 0) {
+    showToast(state.lang === 'ko' ? '📸 사진을 먼저 업로드해주세요' : '📸 Please upload a photo first');
+    return;
+  }
+  const fname = (selectedFile ? selectedFile.name : '').toLowerCase();
+  const rejectPatterns = /\.(gif|svg|webp|bmp|tiff)$/i;
+  if (rejectPatterns.test(fname)) {
+    showToast(state.lang === 'ko' ? '지원하지 않는 파일 형식입니다. JPG/PNG/HEIC만 가능합니다.' : 'Unsupported file format. Use JPG/PNG/HEIC.');
+    return;
+  }
   const overlay = document.getElementById('loadingOverlay');
   overlay.classList.add('show');
   const db = await loadHealthDB();
@@ -3799,8 +3996,11 @@ async function runAnalysis() {
       </div>`;
   }
 
+  const photoPreview = lastAnalyzedImage ? `<div style="text-align:center;margin-bottom:14px"><img src="${lastAnalyzedImage}" style="width:120px;height:120px;object-fit:cover;border-radius:14px;border:3px solid var(--border,#e0e0e0)"></div>` : '';
+
   document.getElementById('analysisResult').innerHTML = `
     <div class="card">
+      ${photoPreview}
       <div class="result-header">
         <div class="result-score ${r.key}"><span>${r.score}</span><span style="font-size:0.6rem;font-weight:400">/100</span></div>
         <div class="result-details">
@@ -3823,28 +4023,57 @@ async function runAnalysis() {
       ${dietHTML}
       ${emergencyHTML}
       <div class="result-actions" style="margin-top:20px;display:flex;flex-direction:column;gap:10px">
-        <button class="btn-primary" id="shareToFeedBtn" style="width:100%;justify-content:center">${t('shareToFeed')}</button>
+        <button class="btn-primary" id="shareToFeedBtn" style="width:100%;justify-content:center">📢 ${t('shareToFeed')}</button>
+        <button class="btn-secondary" id="snsShareBtn" style="width:100%;justify-content:center">📱 ${state.lang === 'ko' ? 'SNS/메신저 공유' : 'Share to SNS'}</button>
         <button class="btn-secondary" onclick="exportPDF()" style="width:100%;justify-content:center">${t('exportPdf')}</button>
-        <button class="btn-secondary" onclick="document.getElementById('analysisResult').style.display='none';document.getElementById('previewImg').style.display='none';document.getElementById('analyzeBtn').style.display='none'" style="width:100%;justify-content:center">${t('analyzeAnother')}</button>
+        <button class="btn-secondary" onclick="selectedFiles=[];selectedFile=null;lastAnalyzedImage=null;document.getElementById('analysisResult').style.display='none';document.getElementById('previewImg').style.display='none';document.getElementById('analyzeBtn').style.display='none';var tc=document.getElementById('photoThumbnails');if(tc)tc.innerHTML='';" style="width:100%;justify-content:center">${t('analyzeAnother')}</button>
       </div>
     </div>`;
   document.getElementById('analysisResult').style.display = 'block';
 
   // Save analysis to history + calendar + XP
-  const analysisRecord = { date: new Date().toISOString(), score: r.score, bristol, color: detectedColorDB, colorKey, consKey, pet: state.mode, key: r.key, msgKey: r.msgKey, abnormalities: detectedAbnormalities };
+  const analysisRecord = { date: new Date().toISOString(), score: r.score, bristol, color: detectedColorDB, colorKey, consKey, pet: state.mode, key: r.key, msgKey: r.msgKey, abnormalities: detectedAbnormalities, photo: lastAnalyzedImage };
   saveAnalysis(analysisRecord);
   addXP(15, t('analyze'));
 
-  // Wire up share button
+  // Wire up feed share button
   document.getElementById('shareToFeedBtn').onclick = () => {
     addFeedPost(analysisRecord);
     showToast('✅ ' + t('shareToFeed') + '!');
     setTimeout(() => navigate('feed'), 600);
   };
+
+  // Wire up SNS / messenger share button (Web Share API)
+  document.getElementById('snsShareBtn').onclick = async () => {
+    const shareText = `${r.emoji} ${state.lang === 'ko' ? 'PoopBuddy 분석 결과' : 'PoopBuddy Analysis'} — ${t('gutHealth')}: ${t(r.key)} (${r.score}/100)\n${t(typeKey)} • Bristol Type ${bristol}\n${diverseMsg}`;
+    if (navigator.share) {
+      try {
+        const shareData = { title: 'PoopBuddy 💩', text: shareText };
+        // Try to share with image if possible
+        if (lastAnalyzedImage && navigator.canShare) {
+          try {
+            const resp = await fetch(lastAnalyzedImage);
+            const blob = await resp.blob();
+            const file = new File([blob], 'poopbuddy-analysis.jpg', { type: 'image/jpeg' });
+            if (navigator.canShare({ files: [file] })) shareData.files = [file];
+          } catch (e) { }
+        }
+        await navigator.share(shareData);
+        showToast('✅ ' + (state.lang === 'ko' ? '공유 완료!' : 'Shared!'));
+      } catch (e) { if (e.name !== 'AbortError') showToast('❌ ' + (state.lang === 'ko' ? '공유 실패' : 'Share failed')); }
+    } else {
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(shareText);
+        showToast('📋 ' + (state.lang === 'ko' ? '클립보드에 복사됨!' : 'Copied to clipboard!'));
+      } catch (e) { showToast('❌ ' + (state.lang === 'ko' ? '복사 실패' : 'Copy failed')); }
+    }
+  };
 }
 
 // ── Calendar Toggle ──
 function toggleRecord(y, m, d) {
+  haptic('medium');
   const key = `${y}-${m}-${d}`;
   const bristolEmojis = ['⚫', '🟤', '🟫', '🟡', '🟠', '🔴', '💧'];
   const cur = CAL_RECORDS[key];
@@ -4218,6 +4447,73 @@ function exportData() {
   a.click();
   document.body.removeChild(a);
   if (typeof showToast === 'function') showToast('Backup downloaded! 💾');
+}
+
+// ── PDF Export & Share ──
+function exportPDF() {
+  haptic('medium');
+  const isKo = state.lang === 'ko';
+  const petHistory = DB.history.filter(h => h.pet === state.mode);
+  if (petHistory.length === 0) {
+    showToast(isKo ? '분석 기록이 없습니다' : 'No analysis records');
+    return;
+  }
+  const pet = DB.pets.find(p => p.species === state.mode) || { name: state.mode };
+  const rows = petHistory.slice(-20).reverse().map(h => `
+    <tr>
+      <td>${new Date(h.date).toLocaleDateString()}</td>
+      <td style="font-weight:700;color:${h.score >= 70 ? '#5BB89A' : h.score >= 40 ? '#FFBE88' : '#FF8A80'}">${h.score}/100</td>
+      <td>Type ${h.bristol || '?'}</td>
+      <td>${h.color || '-'}</td>
+      <td>${h.texture || '-'}</td>
+    </tr>
+  `).join('');
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>PoopBuddy Report - ${pet.name}</title>
+    <style>body{font-family:'Segoe UI',sans-serif;max-width:700px;margin:0 auto;padding:20px;color:#333}
+    h1{color:#5BB89A}table{width:100%;border-collapse:collapse;margin:16px 0}
+    th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #eee}
+    th{background:#f5f5f5;font-weight:600;font-size:0.85rem}
+    .summary{display:flex;gap:20px;margin:16px 0}
+    .stat{background:#f8f8f8;padding:16px;border-radius:12px;flex:1;text-align:center}
+    .stat-val{font-size:1.8rem;font-weight:800;color:#5BB89A}
+    .stat-label{font-size:0.75rem;color:#888;margin-top:4px}
+    @media print{body{padding:0}}</style></head><body>
+    <h1>🐾 PoopBuddy ${isKo ? '건강 리포트' : 'Health Report'}</h1>
+    <p><strong>${isKo ? '대상' : 'Subject'}:</strong> ${pet.name} (${pet.species || state.mode})</p>
+    <p><strong>${isKo ? '생성일' : 'Generated'}:</strong> ${new Date().toLocaleDateString()}</p>
+    <div class="summary">
+      <div class="stat"><div class="stat-val">${petHistory.length}</div><div class="stat-label">${isKo ? '총 분석' : 'Total Analyses'}</div></div>
+      <div class="stat"><div class="stat-val">${Math.round(petHistory.reduce((a, h) => a + (h.score || 0), 0) / petHistory.length)}</div><div class="stat-label">${isKo ? '평균 점수' : 'Avg Score'}</div></div>
+      <div class="stat"><div class="stat-val">${Math.max(...petHistory.map(h => h.score || 0))}</div><div class="stat-label">${isKo ? '최고 점수' : 'Best Score'}</div></div>
+    </div>
+    <h3>${isKo ? '최근 분석 기록' : 'Recent Analysis History'}</h3>
+    <table><thead><tr><th>${isKo ? '날짜' : 'Date'}</th><th>${isKo ? '점수' : 'Score'}</th><th>Bristol</th><th>${isKo ? '색상' : 'Color'}</th><th>${isKo ? '질감' : 'Texture'}</th></tr></thead><tbody>${rows}</tbody></table>
+    <p style="color:#999;font-size:0.75rem;text-align:center;margin-top:24px">Generated by PoopBuddy — poopbuddy.app</p>
+    </body></html>`;
+
+  const w = window.open('', '_blank');
+  if (w) {
+    w.document.write(html);
+    w.document.close();
+    setTimeout(() => { w.print(); }, 500);
+  }
+  haptic('success');
+  showToast(isKo ? 'PDF 리포트 생성됨! 📄' : 'PDF report ready! 📄');
+}
+
+function shareAnalysis(analysisId) {
+  haptic('light');
+  const isKo = state.lang === 'ko';
+  const analysis = DB.history.find(h => h.id === analysisId) || DB.history[DB.history.length - 1];
+  if (!analysis) { showToast(isKo ? '공유할 분석이 없습니다' : 'No analysis to share'); return; }
+  const text = `🐾 PoopBuddy ${isKo ? '분석 결과' : 'Analysis'}\n${isKo ? '점수' : 'Score'}: ${analysis.score}/100\nBristol: Type ${analysis.bristol || '?'}\n${isKo ? '색상' : 'Color'}: ${analysis.color || '-'}\n${analysis.summary || ''}`;
+  if (navigator.share) {
+    navigator.share({ title: 'PoopBuddy Analysis', text }).catch(() => { });
+  } else {
+    navigator.clipboard.writeText(text).then(() => showToast(isKo ? '클립보드에 복사됨!' : 'Copied to clipboard!'));
+  }
 }
 
 function importData(input) {
