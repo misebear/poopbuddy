@@ -1,0 +1,100 @@
+{
+  "DB": {
+    "history": [
+      {
+        "date": "2026-02-16T06:53:13.707Z",
+        "score": 32,
+        "bristol": 1,
+        "color": "yellow",
+        "colorKey": "colorYellowBrown",
+        "consKey": "consWatery",
+        "pet": "dog",
+        "key": "warning",
+        "msgKey": "analysisWarningMsg",
+        "abnormalities": []
+      },
+      {
+        "date": "2026-02-16T06:54:45.554Z",
+        "score": 29,
+        "bristol": 3,
+        "color": "orange",
+        "colorKey": "colorLightBrown",
+        "consKey": "consHardLumpy",
+        "pet": "dog",
+        "key": "warning",
+        "msgKey": "analysisWarningMsg",
+        "abnormalities": ["fatty_greasy"]
+      },
+      {
+        "date": "2026-02-16T06:57:25.150Z",
+        "score": 84,
+        "bristol": 2,
+        "color": "orange",
+        "colorKey": "colorLightBrown",
+        "consKey": "consSmoothSoft",
+        "pet": "dog",
+        "key": "good",
+        "msgKey": "analysisGoodMsg",
+        "abnormalities": ["worms_visible"]
+      }
+    ],
+    "pets": [],
+    "activePet": null,
+    "xp": 165,
+    "user": {
+      "name": "Google User",
+      "email": "",
+      "loggedIn": true,
+      "provider": "Google"
+    },
+    "feedPosts": [
+      {
+        "id": 1771224815182,
+        "user": "Me",
+        "level": 1,
+        "type": "dog",
+        "gender": "",
+        "tag": "warning",
+        "views": 0,
+        "likes": 0,
+        "comments": 0,
+        "time": "now",
+        "analysis": "analysisWarningMsg",
+        "score": 32,
+        "bristol": 1,
+        "color": "colorYellowBrown",
+        "date": "2026-02-16T06:53:35.182Z",
+        "isOwn": true
+      },
+      {
+        "id": 1771224814261,
+        "user": "Me",
+        "level": 1,
+        "type": "dog",
+        "gender": "",
+        "tag": "warning",
+        "views": 0,
+        "likes": 0,
+        "comments": 0,
+        "time": "now",
+        "analysis": "analysisWarningMsg",
+        "score": 32,
+        "bristol": 1,
+        "color": "colorYellowBrown",
+        "date": "2026-02-16T06:53:34.261Z",
+        "isOwn": true
+      }
+    ],
+    "friends": [],
+    "exploredCountries": [],
+    "completedChallenges": {},
+    "completedMissions": []
+  },
+  "localStorage": {
+    "pb-theme": null,
+    "pb-lang": "ko"
+  },
+  "version": "1.0",
+  "timestamp": "2026-02-16T11:33:00.000Z",
+  "source": "phone_extraction_via_adb"
+}

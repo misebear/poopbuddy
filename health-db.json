@@ -1,0 +1,937 @@
+{
+    "version": "1.0.0",
+    "lastUpdated": "2026-02-16",
+    "source": "Compiled from veterinary sources (Hills Pet, PetMD, MSD Vet Manual, K-Health, 21gram, fitpetmall, etc.)",
+    "bristolScale": {
+        "1": {
+            "type": "Separate hard lumps",
+            "typeKo": "딱딱한 분리된 덩어리",
+            "healthStatus": "severe_constipation",
+            "description": "Hard, nut-like lumps that are difficult to pass",
+            "descriptionKo": "견과류처럼 딱딱하고 분리된 덩어리. 배변이 어려움",
+            "causes": [
+                "dehydration",
+                "low_fiber_diet",
+                "medication_side_effect",
+                "kidney_disease",
+                "megacolon"
+            ],
+            "causesKo": [
+                "탈수",
+                "식이섬유 부족",
+                "약물 부작용",
+                "신장 질환",
+                "거대결장증"
+            ],
+            "urgency": "moderate",
+            "advice": "Increase water intake and fiber. If persists over 2 days, visit vet.",
+            "adviceKo": "수분과 식이섬유 섭취를 늘려주세요. 2일 이상 지속되면 병원에 가세요.",
+            "homeRemedies": [
+                "pumpkin_puree",
+                "more_water",
+                "gentle_exercise"
+            ],
+            "homeRemediesKo": [
+                "단호박 퓨레",
+                "수분 보충",
+                "가벼운 산책"
+            ]
+        },
+        "2": {
+            "type": "Sausage-shaped but lumpy",
+            "typeKo": "소시지 모양이나 울퉁불퉁",
+            "healthStatus": "mild_constipation",
+            "description": "Lumpy sausage shape, slightly hard to pass",
+            "descriptionKo": "소시지 형태이지만 울퉁불퉁하고 약간 딱딱함",
+            "causes": [
+                "mild_dehydration",
+                "excess_bone_diet",
+                "insufficient_exercise"
+            ],
+            "causesKo": [
+                "경미한 탈수",
+                "뼈 과다 섭취(생식)",
+                "운동 부족"
+            ],
+            "urgency": "low",
+            "advice": "Slightly increase water and exercise. Monitor for improvement.",
+            "adviceKo": "수분 섭취와 운동량을 약간 늘려주세요. 경과를 지켜보세요.",
+            "homeRemedies": [
+                "pumpkin_puree",
+                "more_water",
+                "regular_walks"
+            ],
+            "homeRemediesKo": [
+                "단호박 퓨레",
+                "수분 보충",
+                "규칙적 산책"
+            ]
+        },
+        "3": {
+            "type": "Sausage with cracks on surface",
+            "typeKo": "표면에 갈라짐이 있는 소시지 형태",
+            "healthStatus": "normal",
+            "description": "Ideal stool. Log-shaped, firm but easy to pick up",
+            "descriptionKo": "이상적인 대변. 통나무 형태, 단단하지만 집기 쉬움",
+            "causes": [
+                "healthy_diet",
+                "good_hydration",
+                "balanced_gut"
+            ],
+            "causesKo": [
+                "건강한 식단",
+                "충분한 수분",
+                "균형 잡힌 장내 환경"
+            ],
+            "urgency": "none",
+            "advice": "Perfect! Keep up the current diet and routine.",
+            "adviceKo": "완벽해요! 현재 식단과 루틴을 유지해주세요.",
+            "homeRemedies": [],
+            "homeRemediesKo": []
+        },
+        "4": {
+            "type": "Smooth and snake-like",
+            "typeKo": "매끈하고 뱀 같은 형태",
+            "healthStatus": "ideal",
+            "description": "The gold standard. Smooth, soft, log-shaped",
+            "descriptionKo": "최고의 상태. 매끈하고 부드러운 통나무 형태",
+            "causes": [
+                "optimal_diet",
+                "excellent_hydration",
+                "healthy_gut_flora"
+            ],
+            "causesKo": [
+                "최적의 식단",
+                "우수한 수분 섭취",
+                "건강한 장내 균총"
+            ],
+            "urgency": "none",
+            "advice": "Excellent digestive health! Maintain current regimen.",
+            "adviceKo": "소화 건강 최상! 현재 관리를 유지해주세요.",
+            "homeRemedies": [],
+            "homeRemediesKo": []
+        },
+        "5": {
+            "type": "Soft blobs with clear edges",
+            "typeKo": "부드러운 덩어리 (가장자리 뚜렷)",
+            "healthStatus": "mild_loose",
+            "description": "Soft but still has some shape. Slightly loose",
+            "descriptionKo": "부드럽지만 아직 형태가 있음. 약간 무른 상태",
+            "causes": [
+                "dietary_change",
+                "mild_stress",
+                "overeating",
+                "food_intolerance"
+            ],
+            "causesKo": [
+                "사료 변경",
+                "경미한 스트레스",
+                "과식",
+                "식이 불내성"
+            ],
+            "urgency": "low",
+            "advice": "Monitor for 24h. If no other symptoms, may resolve on its own.",
+            "adviceKo": "24시간 경과 관찰하세요. 다른 증상이 없으면 자연히 회복될 수 있어요.",
+            "homeRemedies": [
+                "bland_diet",
+                "probiotics",
+                "small_frequent_meals"
+            ],
+            "homeRemediesKo": [
+                "자극 없는 식단(흰죽)",
+                "유산균",
+                "소량 자주 급여"
+            ]
+        },
+        "6": {
+            "type": "Fluffy pieces with ragged edges",
+            "typeKo": "울퉁불퉁한 조각들, 형태 불분명",
+            "healthStatus": "diarrhea",
+            "description": "Mushy, hard to pick up, no clear shape",
+            "descriptionKo": "묽고 집기 어려움, 뚜렷한 형태 없음",
+            "causes": [
+                "infection",
+                "parasites",
+                "food_poisoning",
+                "IBD",
+                "pancreatitis",
+                "stress"
+            ],
+            "causesKo": [
+                "감염",
+                "기생충",
+                "식중독",
+                "염증성 장질환",
+                "췌장염",
+                "스트레스"
+            ],
+            "urgency": "moderate",
+            "advice": "Fast for 12-24h (adults only), then bland diet. Visit vet if persists over 24h or if puppy/senior.",
+            "adviceKo": "성견만 12-24시간 금식 후 흰죽 급여. 24시간 이상 지속되거나 새끼/노령견이면 즉시 병원으로.",
+            "homeRemedies": [
+                "fasting_12h",
+                "bland_diet",
+                "probiotics",
+                "hydration"
+            ],
+            "homeRemediesKo": [
+                "12시간 금식",
+                "흰죽 급여",
+                "유산균",
+                "수분 보충"
+            ]
+        },
+        "7": {
+            "type": "Watery, no solid pieces",
+            "typeKo": "물변, 고형분 없음",
+            "healthStatus": "severe_diarrhea",
+            "description": "Completely liquid with no solid matter",
+            "descriptionKo": "완전히 액체 상태, 고형분 없음",
+            "causes": [
+                "virus_infection",
+                "severe_parasites",
+                "parvovirus",
+                "poisoning",
+                "severe_IBD",
+                "organ_disease"
+            ],
+            "causesKo": [
+                "바이러스 감염",
+                "심한 기생충",
+                "파보바이러스",
+                "중독",
+                "심한 염증성 장질환",
+                "장기 질환"
+            ],
+            "urgency": "high",
+            "advice": "URGENT: Visit vet immediately. Risk of severe dehydration. Especially dangerous for puppies.",
+            "adviceKo": "⚠️ 긴급: 즉시 동물병원에 가세요! 심한 탈수 위험이 있습니다. 특히 새끼 강아지라면 더 위험합니다.",
+            "homeRemedies": [
+                "vet_visit_immediately",
+                "keep_hydrated"
+            ],
+            "homeRemediesKo": [
+                "즉시 병원 방문",
+                "수분 유지(소량씩 자주)"
+            ]
+        }
+    },
+    "colorAnalysis": {
+        "brown": {
+            "color": "Brown",
+            "colorKo": "갈색",
+            "hex": "#8B4513",
+            "healthStatus": "healthy",
+            "description": "Normal, healthy color from bile pigment (bilirubin) breakdown",
+            "descriptionKo": "담즙 색소(빌리루빈) 분해에 의한 정상적인 건강한 색상",
+            "urgency": "none",
+            "advice": "Healthy stool color. No action needed.",
+            "adviceKo": "건강한 대변 색상입니다. 특별한 조치 불필요.",
+            "possibleCauses": [],
+            "possibleCausesKo": []
+        },
+        "dark_brown": {
+            "color": "Dark Brown",
+            "colorKo": "짙은 갈색",
+            "hex": "#654321",
+            "healthStatus": "normal",
+            "description": "Normal variation. May indicate high-protein diet",
+            "descriptionKo": "정상 범위. 고단백 식단일 수 있음",
+            "urgency": "none",
+            "advice": "Normal. If consistently very dark, monitor for black tarry stools.",
+            "adviceKo": "정상입니다. 지속적으로 매우 어두우면 검은색 타르변 여부를 관찰하세요.",
+            "possibleCauses": [
+                "high_protein_diet"
+            ],
+            "possibleCausesKo": [
+                "고단백 식단"
+            ]
+        },
+        "black": {
+            "color": "Black / Tarry",
+            "colorKo": "검은색 / 타르변",
+            "hex": "#1A1A1A",
+            "healthStatus": "dangerous",
+            "description": "Digested blood from upper GI bleeding. Looks tar-like with a glossy surface",
+            "descriptionKo": "상부 위장관 출혈로 인한 소화된 혈액. 타르처럼 끈적이고 광택이 있음",
+            "urgency": "high",
+            "advice": "URGENT: May indicate stomach ulcer, upper GI bleeding, or ingesting blood. Visit vet immediately.",
+            "adviceKo": "⚠️ 긴급: 위궤양, 상부 위장관 출혈 또는 혈액 섭취 가능성. 즉시 병원 방문하세요.",
+            "possibleCauses": [
+                "stomach_ulcer",
+                "upper_GI_bleeding",
+                "ingested_blood",
+                "iron_supplements",
+                "activated_charcoal"
+            ],
+            "possibleCausesKo": [
+                "위궤양",
+                "상부 위장관 출혈",
+                "혈액 섭취",
+                "철분제 복용",
+                "활성탄 섭취"
+            ],
+            "exceptions": "Iron supplements or activated charcoal can also cause black stool. Check with vet.",
+            "exceptionsKo": "철분제나 활성탄도 검은 대변을 유발할 수 있습니다. 수의사와 확인하세요."
+        },
+        "red": {
+            "color": "Red / Bloody",
+            "colorKo": "빨간색 / 혈변",
+            "hex": "#CC0000",
+            "healthStatus": "dangerous",
+            "description": "Fresh blood in stool, usually from lower GI tract (colon, rectum, anus)",
+            "descriptionKo": "대변 내 선혈. 주로 하부 위장관(대장, 직장, 항문)에서 발생",
+            "urgency": "high",
+            "advice": "Visit vet promptly. Can range from minor (anal fissure) to serious (parvovirus, tumor). Especially urgent for puppies.",
+            "adviceKo": "빠르게 병원에 가세요. 가벼운 원인(항문 열상)부터 심각한 원인(파보바이러스, 종양)까지 다양합니다. 새끼 강아지는 특히 긴급합니다.",
+            "possibleCauses": [
+                "colitis",
+                "parvovirus",
+                "hemorrhagic_gastroenteritis",
+                "parasites",
+                "foreign_object",
+                "anal_gland_issue",
+                "tumor",
+                "rectal_injury"
+            ],
+            "possibleCausesKo": [
+                "대장염",
+                "파보바이러스",
+                "출혈성 위장염",
+                "기생충",
+                "이물질 섭취",
+                "항문낭 문제",
+                "종양",
+                "직장 손상"
+            ]
+        },
+        "orange": {
+            "color": "Orange",
+            "colorKo": "주황색",
+            "hex": "#FF8C00",
+            "healthStatus": "warning",
+            "description": "Insufficient bile or liver issue. Can also be from certain foods (carrots, sweet potatoes)",
+            "descriptionKo": "담즙 부족 또는 간 문제 가능성. 당근, 고구마 등 특정 음식 때문일 수도 있음",
+            "urgency": "moderate",
+            "advice": "If food-related, temporary. If persists, check liver and gallbladder function with vet.",
+            "adviceKo": "음식 때문이라면 일시적. 지속되면 간/담낭 기능 검사 필요.",
+            "possibleCauses": [
+                "bile_insufficiency",
+                "liver_disease",
+                "gallbladder_issue",
+                "food_coloring",
+                "carrots_sweet_potato"
+            ],
+            "possibleCausesKo": [
+                "담즙 부족",
+                "간 질환",
+                "담낭 문제",
+                "식용 색소",
+                "당근/고구마 과다"
+            ]
+        },
+        "yellow": {
+            "color": "Yellow",
+            "colorKo": "노란색",
+            "hex": "#FFD700",
+            "healthStatus": "warning",
+            "description": "May indicate liver problems, food intolerance, or rapid gut transit",
+            "descriptionKo": "간 문제, 식이 불내성, 또는 장 통과 시간이 너무 빠른 경우",
+            "urgency": "moderate",
+            "advice": "Check diet first. If not food-related, visit vet for liver and pancreas check.",
+            "adviceKo": "먼저 식단을 확인하세요. 식단 문제가 아니면 간/췌장 검사를 받으세요.",
+            "possibleCauses": [
+                "liver_disease",
+                "pancreatitis",
+                "exocrine_pancreatic_insufficiency",
+                "food_intolerance",
+                "rapid_transit"
+            ],
+            "possibleCausesKo": [
+                "간 질환",
+                "췌장염",
+                "외분비 췌장 기능 부전",
+                "식이 불내성",
+                "빠른 장 통과"
+            ]
+        },
+        "green": {
+            "color": "Green",
+            "colorKo": "녹색",
+            "hex": "#228B22",
+            "healthStatus": "warning",
+            "description": "Can be from eating grass/plants, gallbladder issue, or rat poison ingestion",
+            "descriptionKo": "풀/채소 과다 섭취, 담낭 문제, 또는 쥐약 섭취 가능성",
+            "urgency": "moderate",
+            "advice": "If dog ate grass, usually temporary. If persists 2+ days or with diarrhea, visit vet. URGENT if rat poison suspected.",
+            "adviceKo": "풀을 먹었다면 일시적. 2일 이상 지속되거나 설사 동반하면 병원. ⚠️ 쥐약 섭취 의심 시 즉시 응급!",
+            "possibleCauses": [
+                "grass_eating",
+                "gallbladder_issue",
+                "rat_poison",
+                "intestinal_parasites",
+                "bacterial_overgrowth"
+            ],
+            "possibleCausesKo": [
+                "풀 섭취",
+                "담낭 문제",
+                "쥐약 섭취",
+                "장내 기생충",
+                "세균 과증식"
+            ]
+        },
+        "gray": {
+            "color": "Gray / Greasy",
+            "colorKo": "회색 / 기름기",
+            "hex": "#A9A9A9",
+            "healthStatus": "warning",
+            "description": "Indicates fat maldigestion or malabsorption. Pancreas or liver issue possible",
+            "descriptionKo": "지방 소화불량 또는 흡수장애. 췌장 또는 간 문제 가능성",
+            "urgency": "moderate",
+            "advice": "Visit vet for pancreatic and liver function tests. May need dietary fat adjustment.",
+            "adviceKo": "췌장 및 간 기능 검사를 위해 병원에 가세요. 식단 지방 조절이 필요할 수 있습니다.",
+            "possibleCauses": [
+                "exocrine_pancreatic_insufficiency",
+                "liver_disease",
+                "bile_duct_obstruction",
+                "high_fat_diet"
+            ],
+            "possibleCausesKo": [
+                "외분비 췌장 기능 부전",
+                "간 질환",
+                "담관 폐쇄",
+                "고지방 식단"
+            ]
+        },
+        "white_chalky": {
+            "color": "White / Chalky",
+            "colorKo": "흰색 / 분필색",
+            "hex": "#F5F5DC",
+            "healthStatus": "warning",
+            "description": "Usually from excessive bone in raw diet. Can indicate bile production issue",
+            "descriptionKo": "주로 생식에서 과다한 뼈 섭취. 담즙 생성 문제 가능성",
+            "urgency": "moderate",
+            "advice": "Reduce bone content in diet. If not on raw diet, check liver and bile function.",
+            "adviceKo": "식단 내 뼈 비율을 줄이세요. 생식 식단이 아니라면 간/담즙 기능 검사 필요.",
+            "possibleCauses": [
+                "excess_bone_diet",
+                "bile_deficiency",
+                "liver_disease"
+            ],
+            "possibleCausesKo": [
+                "뼈 과다 섭취",
+                "담즙 부족",
+                "간 질환"
+            ]
+        },
+        "pink_purple": {
+            "color": "Pink / Purple",
+            "colorKo": "분홍색 / 보라색",
+            "hex": "#DB7093",
+            "healthStatus": "emergency",
+            "description": "Hemorrhagic gastroenteritis (HGE). Raspberry jam-like appearance. Life-threatening.",
+            "descriptionKo": "출혈성 위장염(HGE). 라즈베리 잼 같은 외관. 생명 위협적.",
+            "urgency": "critical",
+            "advice": "EMERGENCY: Rush to vet immediately. Hemorrhagic gastroenteritis can be fatal without treatment.",
+            "adviceKo": "🚨 응급: 즉시 응급 동물병원으로! 출혈성 위장염은 치료 없이 치명적일 수 있습니다.",
+            "possibleCauses": [
+                "hemorrhagic_gastroenteritis",
+                "severe_infection",
+                "clotting_disorder"
+            ],
+            "possibleCausesKo": [
+                "출혈성 위장염",
+                "심한 감염",
+                "응고 장애"
+            ]
+        }
+    },
+    "abnormalities": {
+        "mucus": {
+            "name": "Mucus",
+            "nameKo": "점액변",
+            "description": "Slimy, jelly-like coating on stool. Small amounts are normal (intestinal lubricant). Excessive amounts may indicate inflammation.",
+            "descriptionKo": "끈적끈적한 젤리 같은 물질이 대변에 코팅됨. 소량은 정상(장 윤활유 역할). 과도하면 염증 의심.",
+            "urgency": "moderate",
+            "causes": [
+                {
+                    "cause": "Irritable Bowel Syndrome (IBS)",
+                    "causeKo": "과민성 대장 증후군",
+                    "detail": "Stress or environmental changes can trigger excessive mucus production",
+                    "detailKo": "스트레스나 환경 변화가 과도한 점액 분비를 유발할 수 있음"
+                },
+                {
+                    "cause": "Food intolerance/allergy",
+                    "causeKo": "식이 불내성/알레르기",
+                    "detail": "Sudden diet change, rich/fatty foods, or allergens",
+                    "detailKo": "갑작스러운 사료 변경, 기름진 음식, 알레르기 유발 식품"
+                },
+                {
+                    "cause": "Parasites",
+                    "causeKo": "기생충 감염",
+                    "detail": "Roundworms, hookworms, giardia can cause persistent mucus",
+                    "detailKo": "회충, 구충, 지아르디아 등이 지속적인 점액변을 유발"
+                },
+                {
+                    "cause": "Colitis",
+                    "causeKo": "대장염",
+                    "detail": "Inflammation of the large intestine from infection, stress, or IBD",
+                    "detailKo": "감염, 스트레스, 또는 염증성 장질환(IBD)에 의한 대장 염증"
+                },
+                {
+                    "cause": "Foreign object ingestion",
+                    "causeKo": "이물질 섭취",
+                    "detail": "Ingesting non-food items can irritate the intestinal lining",
+                    "detailKo": "비식품 물질 섭취로 장 점막 자극"
+                },
+                {
+                    "cause": "Bacterial infection",
+                    "causeKo": "세균 감염",
+                    "detail": "Bacterial overgrowth or pathogenic bacteria",
+                    "detailKo": "세균 과증식 또는 병원성 세균"
+                }
+            ],
+            "whenToVisitVet": "If mucus is excessive, persists over 2 days, contains blood, or accompanied by lethargy/vomiting/appetite loss",
+            "whenToVisitVetKo": "점액이 과도하거나 2일 이상 지속되거나 혈액이 섞이거나 기력저하/구토/식욕부진이 동반되면 즉시 동물병원 방문",
+            "homeRemedies": {
+                "items": [
+                    "Probiotics",
+                    "Bland diet (boiled chicken + rice)",
+                    "Pumpkin puree",
+                    "Adequate hydration"
+                ],
+                "itemsKo": [
+                    "유산균 급여",
+                    "자극 없는 식단(삶은 닭가슴살 + 흰쌀)",
+                    "단호박 퓨레",
+                    "충분한 수분 공급"
+                ]
+            },
+            "vetDiagnosis": [
+                "Fecal exam",
+                "Abdominal ultrasound",
+                "Blood work",
+                "Endoscopy (if chronic)"
+            ],
+            "vetDiagnosisKo": [
+                "대변 검사",
+                "복부 초음파",
+                "혈액 검사",
+                "내시경 검사(만성인 경우)"
+            ]
+        },
+        "blood_fresh": {
+            "name": "Fresh Blood (Hematochezia)",
+            "nameKo": "선혈(혈변)",
+            "description": "Bright red blood streaks or coating on stool surface",
+            "descriptionKo": "선홍색 혈액이 대변 표면에 줄무늬나 코팅 형태로 나타남",
+            "urgency": "high",
+            "causes": [
+                {
+                    "cause": "Colitis",
+                    "causeKo": "대장염",
+                    "detail": "Most common cause of fresh blood in stool",
+                    "detailKo": "선혈의 가장 흔한 원인"
+                },
+                {
+                    "cause": "Parvovirus",
+                    "causeKo": "파보바이러스",
+                    "detail": "Especially in unvaccinated puppies. Very dangerous.",
+                    "detailKo": "특히 예방접종 미완료 강아지에서 위험. 매우 치명적"
+                },
+                {
+                    "cause": "Parasites",
+                    "causeKo": "기생충",
+                    "detail": "Hookworms, whipworms can cause bloody stools",
+                    "detailKo": "구충, 편충이 혈변을 유발할 수 있음"
+                },
+                {
+                    "cause": "Rectal injury",
+                    "causeKo": "직장 손상",
+                    "detail": "Straining, swallowed sharp object",
+                    "detailKo": "힘주기, 날카로운 물체 삼킴"
+                },
+                {
+                    "cause": "Anal gland issues",
+                    "causeKo": "항문낭 문제",
+                    "detail": "Impacted or infected anal glands",
+                    "detailKo": "항문낭 압박 또는 감염"
+                }
+            ],
+            "whenToVisitVet": "Always visit vet for blood in stool. Especially urgent for puppies, seniors, or if large amounts.",
+            "whenToVisitVetKo": "혈변이 있으면 반드시 병원에 가세요. 새끼, 노령견, 또는 양이 많으면 특히 긴급합니다."
+        },
+        "blood_digested": {
+            "name": "Digested Blood (Melena)",
+            "nameKo": "흑색변(소화된 혈액)",
+            "description": "Black, tarry, sticky stool with glossy appearance",
+            "descriptionKo": "검고 끈적이며 광택이 있는 타르 같은 대변",
+            "urgency": "critical",
+            "causes": [
+                {
+                    "cause": "Stomach ulcer",
+                    "causeKo": "위궤양",
+                    "detail": "Caused by NSAIDs, stress, or H. pylori",
+                    "detailKo": "NSAID 약물, 스트레스, H. pylori 감염"
+                },
+                {
+                    "cause": "Upper GI bleeding",
+                    "causeKo": "상부 위장관 출혈",
+                    "detail": "Bleeding from esophagus, stomach, or small intestine",
+                    "detailKo": "식도, 위, 소장에서의 출혈"
+                },
+                {
+                    "cause": "Tumor",
+                    "causeKo": "종양",
+                    "detail": "GI tract tumors can cause chronic bleeding",
+                    "detailKo": "위장관 종양이 만성 출혈을 유발"
+                }
+            ],
+            "whenToVisitVet": "EMERGENCY. Always seek immediate veterinary care.",
+            "whenToVisitVetKo": "🚨 응급. 즉시 동물병원에 가세요."
+        },
+        "worms_visible": {
+            "name": "Visible Worms/Parasites",
+            "nameKo": "눈에 보이는 기생충",
+            "description": "White rice-grain segments (tapeworm), spaghetti-like strands (roundworm), or other visible organisms",
+            "descriptionKo": "흰색 쌀알 모양 마디(촌충), 스파게티 같은 가닥(회충), 또는 기타 눈에 보이는 기생체",
+            "urgency": "moderate",
+            "causes": [
+                {
+                    "cause": "Tapeworm (촌충)",
+                    "causeKo": "촌충",
+                    "detail": "Rice-like segments. Usually from flea ingestion",
+                    "detailKo": "쌀알 모양 마디. 주로 벼룩 섭취로 감염"
+                },
+                {
+                    "cause": "Roundworm (회충)",
+                    "causeKo": "회충",
+                    "detail": "Spaghetti-like. Common in puppies via mother",
+                    "detailKo": "스파게티 같은 형태. 새끼 강아지에서 어미를 통해 흔히 감염"
+                },
+                {
+                    "cause": "Hookworm (구충)",
+                    "causeKo": "구충",
+                    "detail": "Very small, hard to see. Causes bloody diarrhea",
+                    "detailKo": "매우 작아 보기 어려움. 혈변성 설사 유발"
+                },
+                {
+                    "cause": "Whipworm (편충)",
+                    "causeKo": "편충",
+                    "detail": "Thread-like with wider head. Causes mucoid bloody stool",
+                    "detailKo": "실 같은 형태에 넓은 머리. 점액성 혈변 유발"
+                }
+            ],
+            "whenToVisitVet": "Visit vet for proper deworming medication. Bring a stool sample.",
+            "whenToVisitVetKo": "적절한 구충제 처방을 위해 병원에 가세요. 대변 샘플을 가져가세요.",
+            "prevention": [
+                "Regular deworming (every 3-6 months)",
+                "Flea prevention",
+                "Keep environment clean",
+                "Prevent eating wild animals/carcasses"
+            ],
+            "preventionKo": [
+                "정기적 구충 (3-6개월마다)",
+                "벼룩 예방",
+                "환경 청결 유지",
+                "야생동물/사체 섭취 방지"
+            ]
+        },
+        "foreign_objects": {
+            "name": "Foreign Objects in Stool",
+            "nameKo": "대변 내 이물질",
+            "description": "Visible pieces of non-food items: plastic, fabric, bones, toys, etc.",
+            "descriptionKo": "비식품 물질 조각: 플라스틱, 천, 뼈, 장난감 등",
+            "urgency": "moderate",
+            "advice": "Some small items pass naturally. If dog is vomiting, refusing food, or straining, visit vet urgently (possible obstruction).",
+            "adviceKo": "작은 물체는 자연적으로 배출될 수 있음. 구토, 식욕 거부, 힘주기가 있으면 즉시 병원(장폐색 가능성)."
+        },
+        "undigested_food": {
+            "name": "Undigested Food Particles",
+            "nameKo": "소화되지 않은 음식 조각",
+            "description": "Visible chunks of food in stool, indicating incomplete digestion",
+            "descriptionKo": "대변에 보이는 음식 덩어리, 불완전한 소화를 나타냄",
+            "urgency": "low",
+            "causes": [
+                {
+                    "cause": "Eating too fast",
+                    "causeKo": "급하게 먹음",
+                    "detail": "Food not adequately chewed or mixed with enzymes",
+                    "detailKo": "음식이 충분히 씹히거나 효소와 혼합되지 않음"
+                },
+                {
+                    "cause": "Pancreatic insufficiency",
+                    "causeKo": "췌장 기능 부전",
+                    "detail": "Not enough digestive enzymes produced",
+                    "detailKo": "소화효소가 충분히 생성되지 않음"
+                },
+                {
+                    "cause": "Food too large/hard",
+                    "causeKo": "음식이 너무 크거나 딱딱함",
+                    "detail": "Pieces too big to digest properly",
+                    "detailKo": "적절히 소화하기에 너무 큰 조각"
+                }
+            ],
+            "advice": "Use slow-feeder bowl. If persistent, check for pancreatic issues with vet.",
+            "adviceKo": "슬로우 피더 사용 권장. 지속되면 췌장 문제 검사를 받으세요."
+        },
+        "fatty_greasy": {
+            "name": "Fatty/Greasy Stool (Steatorrhea)",
+            "nameKo": "지방변/기름진 대변",
+            "description": "Oily, greasy, foul-smelling stool that may float. Indicates fat malabsorption.",
+            "descriptionKo": "기름지고 악취가 나며 물에 뜰 수 있는 대변. 지방 흡수장애를 나타냄.",
+            "urgency": "moderate",
+            "causes": [
+                {
+                    "cause": "EPI",
+                    "causeKo": "외분비 췌장 기능 부전(EPI)",
+                    "detail": "Pancreas doesn't produce enough digestive enzymes",
+                    "detailKo": "췌장이 충분한 소화효소를 생성하지 못함"
+                },
+                {
+                    "cause": "High-fat diet",
+                    "causeKo": "고지방 식단",
+                    "detail": "Too much fat in the diet",
+                    "detailKo": "식단 내 과도한 지방"
+                },
+                {
+                    "cause": "Liver/gallbladder disease",
+                    "causeKo": "간/담낭 질환",
+                    "detail": "Insufficient bile for fat emulsification",
+                    "detailKo": "지방 유화를 위한 담즙 부족"
+                }
+            ],
+            "whenToVisitVet": "If greasy stool persists, check pancreatic and liver function.",
+            "whenToVisitVetKo": "기름진 대변이 지속되면 췌장 및 간 기능 검사가 필요합니다."
+        }
+    },
+    "emergencySigns": {
+        "description": "When to rush to the vet immediately",
+        "descriptionKo": "즉시 동물병원에 가야 하는 경우",
+        "signs": [
+            {
+                "sign": "Blood in stool + lethargy",
+                "signKo": "혈변 + 기력 저하"
+            },
+            {
+                "sign": "Black tarry stool",
+                "signKo": "검은색 타르 같은 대변"
+            },
+            {
+                "sign": "Watery diarrhea for 24+ hours",
+                "signKo": "24시간 이상 물설사"
+            },
+            {
+                "sign": "Puppy with any diarrhea",
+                "signKo": "새끼 강아지의 모든 설사"
+            },
+            {
+                "sign": "Stool resembling raspberry jam",
+                "signKo": "라즈베리 잼 같은 대변"
+            },
+            {
+                "sign": "Vomiting + diarrhea together",
+                "signKo": "구토와 설사 동시 발생"
+            },
+            {
+                "sign": "No stool for 3+ days",
+                "signKo": "3일 이상 배변 없음"
+            },
+            {
+                "sign": "Straining with no output",
+                "signKo": "힘주기만 하고 배변 없음"
+            },
+            {
+                "sign": "Suspected poison ingestion",
+                "signKo": "독극물 섭취 의심"
+            },
+            {
+                "sign": "Foreign object seen partially passing",
+                "signKo": "이물질이 부분적으로 배출되는 경우"
+            }
+        ]
+    },
+    "communityResponses": {
+        "description": "Pre-built response templates matching real community advice patterns",
+        "descriptionKo": "실제 커뮤니티 답변 패턴과 일치하는 사전 구축된 응답 템플릿",
+        "templates": [
+            {
+                "id": "mucus_response",
+                "trigger": [
+                    "mucus",
+                    "점액",
+                    "slime",
+                    "jelly"
+                ],
+                "response": "사진으로 봐서 잘 안 보이긴 하는데 혹시 점액변인가요? 점액변이라면 원인이 감염, 기생충, 이물질 섭취 등으로 다양해요ㅠ 원인이 너무 다양하기도 해서 병원 가보시는 게 좋을 것 같아요. 새끼 강아지라면 더욱이요ㅠㅠ",
+                "responseEn": "Is that mucus in the stool? Mucus can be caused by infections, parasites, foreign object ingestion, and more. Since the causes are so varied, it's best to visit the vet. Especially if it's a puppy!"
+            },
+            {
+                "id": "blood_response",
+                "trigger": [
+                    "blood",
+                    "혈변",
+                    "피",
+                    "빨간"
+                ],
+                "response": "혈변이 보이면 원인이 대장염, 기생충, 파보바이러스 등 다양할 수 있어요. 특히 새끼 강아지라면 파보 가능성이 있어서 정말 긴급해요! 지금 바로 동물병원에 가시는 게 좋겠어요 🏥",
+                "responseEn": "If you see blood in the stool, it could be colitis, parasites, parvovirus, etc. Especially dangerous for puppies due to parvo risk! Please visit the vet right away 🏥"
+            },
+            {
+                "id": "diarrhea_response",
+                "trigger": [
+                    "diarrhea",
+                    "설사",
+                    "물변",
+                    "묽은"
+                ],
+                "response": "설사가 지속되면 탈수 위험이 있어요! 성견이라면 12-24시간 금식 후 흰죽(삶은 닭가슴살+쌀)을 소량씩 급여해보세요. 새끼 강아지나 노령견은 금식하면 안 되고 바로 병원 가셔야 해요. 구토가 동반되면 즉시 응급이에요!",
+                "responseEn": "If diarrhea persists, dehydration is a risk! For adult dogs, fast 12-24h then give bland diet (boiled chicken+rice). Puppies and seniors should NOT fast - go to vet immediately. If vomiting too, it's an emergency!"
+            },
+            {
+                "id": "constipation_response",
+                "trigger": [
+                    "constipation",
+                    "변비",
+                    "딱딱",
+                    "hard"
+                ],
+                "response": "변비라면 수분 섭취를 늘리고, 단호박 퓨레를 조금 섞어 급여해보세요. 산책으로 운동량도 늘려주시고요. 2일 이상 배변이 없거나 힘만 주고 안 나오면 장폐색 가능성이 있어서 병원에 가야 해요!",
+                "responseEn": "For constipation, increase water intake and add some pumpkin puree to food. More walks help too. If no bowel movement for 2+ days or straining with no output, visit vet as obstruction is possible!"
+            },
+            {
+                "id": "worm_response",
+                "trigger": [
+                    "worm",
+                    "기생충",
+                    "벌레",
+                    "쌀알",
+                    "white_specks"
+                ],
+                "response": "대변에서 쌀알 같은 흰색 조각이 보이면 촌충일 수 있어요. 스파게티처럼 긴 가닥이면 회충이고요. 구충제가 필요하니 대변 샘플을 가지고 동물병원에 가세요! 정기적 구충도 중요해요 (3-6개월마다) 🐛",
+                "responseEn": "White rice-like segments = tapeworm. Spaghetti-like strands = roundworm. You'll need deworming medication. Bring a stool sample to the vet! Regular deworming is important (every 3-6 months) 🐛"
+            },
+            {
+                "id": "green_response",
+                "trigger": [
+                    "green",
+                    "녹색",
+                    "초록"
+                ],
+                "response": "녹색 변은 풀을 많이 먹었을 때 일시적으로 나타날 수 있어요. 하지만 2일 이상 지속되거나 설사가 동반되면 담낭 문제나 기생충 가능성이 있으니 병원에 가보세요. ⚠️ 쥐약 섭취 의심이면 즉시 응급이에요!",
+                "responseEn": "Green poop can be temporary from eating grass. But if it persists 2+ days or comes with diarrhea, check for gallbladder issues or parasites. ⚠️ If rat poison ingestion is suspected, it's an emergency!"
+            },
+            {
+                "id": "black_response",
+                "trigger": [
+                    "black",
+                    "검은색",
+                    "까만",
+                    "tarry"
+                ],
+                "response": "검은색 타르 같은 대변은 상부 위장관 출혈을 의미할 수 있어서 매우 위험해요! 🚨 위궤양이나 내부 출혈 가능성이 있습니다. 철분제를 먹고 있다면 그것 때문일 수도 있지만, 확인을 위해 즉시 병원에 가세요!",
+                "responseEn": "Black tarry stool may indicate upper GI bleeding - very dangerous! 🚨 Could be stomach ulcer or internal bleeding. Iron supplements can cause it too, but visit vet immediately to confirm!"
+            },
+            {
+                "id": "smell_response",
+                "trigger": [
+                    "smell",
+                    "냄새",
+                    "악취",
+                    "stink"
+                ],
+                "response": "대변 냄새가 평소보다 심하게 나면 소화불량, 장내 세균 불균형, 또는 감염 가능성이 있어요. 식단을 점검해보시고, 지속되면 대변 검사를 받아보세요. 유산균을 급여하면 장내 환경 개선에 도움이 될 수 있어요!",
+                "responseEn": "If stool smells worse than usual, it could indicate indigestion, gut bacteria imbalance, or infection. Check the diet, and if it persists, get a fecal exam. Probiotics might help improve gut health!"
+            },
+            {
+                "id": "puppy_general",
+                "trigger": [
+                    "puppy",
+                    "새끼",
+                    "강아지",
+                    "아기"
+                ],
+                "response": "새끼 강아지는 면역력이 약해서 대변 이상이 더 위험해요! 파보바이러스, 기생충 등에 취약하고 탈수도 빨리 와요. 예방접종 완료 전이라면 더욱 주의가 필요하고, 대변 이상이 하루 이상 지속되면 바로 병원에 가세요 🏥",
+                "responseEn": "Puppies have weak immune systems, so stool issues are more dangerous! Vulnerable to parvo, parasites, and dehydrate quickly. Extra caution needed before vaccinations are complete. Visit vet if issues persist over 1 day 🏥"
+            }
+        ]
+    },
+    "dietaryAdvice": {
+        "gutFriendlyFoods": [
+            {
+                "name": "Pumpkin puree",
+                "nameKo": "단호박 퓨레",
+                "benefit": "High fiber, helps both diarrhea and constipation",
+                "benefitKo": "고섬유질, 설사와 변비 모두에 도움"
+            },
+            {
+                "name": "Boiled chicken breast",
+                "nameKo": "삶은 닭가슴살",
+                "benefit": "Lean protein, easy to digest, ideal for bland diet",
+                "benefitKo": "저지방 단백질, 소화 쉬움, 자극 없는 식단에 이상적"
+            },
+            {
+                "name": "White rice",
+                "nameKo": "흰쌀",
+                "benefit": "Binding, gentle on stomach, good for recovery",
+                "benefitKo": "묶어주는 효과, 위에 부드러움, 회복에 좋음"
+            },
+            {
+                "name": "Plain yogurt",
+                "nameKo": "무첨가 플레인 요거트",
+                "benefit": "Natural probiotics for gut flora balance",
+                "benefitKo": "장내 균총 균형을 위한 천연 유산균"
+            },
+            {
+                "name": "Sweet potato",
+                "nameKo": "고구마",
+                "benefit": "Fiber and vitamins, supports digestive health",
+                "benefitKo": "식이섬유와 비타민, 소화 건강 지원"
+            },
+            {
+                "name": "Cabbage (cooked)",
+                "nameKo": "양배추(익힌 것)",
+                "benefit": "Soothes GI lining, anti-inflammatory",
+                "benefitKo": "위장 점막 진정, 항염증 효과"
+            }
+        ],
+        "harmfulFoods": [
+            {
+                "name": "Chocolate",
+                "nameKo": "초콜릿",
+                "danger": "Toxic (theobromine). Can cause vomiting, diarrhea, seizures, death",
+                "dangerKo": "독성(테오브로민). 구토, 설사, 경련, 사망 유발 가능"
+            },
+            {
+                "name": "Grapes/Raisins",
+                "nameKo": "포도/건포도",
+                "danger": "Can cause acute kidney failure",
+                "dangerKo": "급성 신부전 유발 가능"
+            },
+            {
+                "name": "Onion/Garlic",
+                "nameKo": "양파/마늘",
+                "danger": "Destroys red blood cells, causes anemia",
+                "dangerKo": "적혈구 파괴, 빈혈 유발"
+            },
+            {
+                "name": "Xylitol",
+                "nameKo": "자일리톨",
+                "danger": "Causes insulin spike, liver failure. Found in sugar-free gum/candy",
+                "dangerKo": "인슐린 급증, 간부전 유발. 무설탕 껌/사탕에 포함"
+            },
+            {
+                "name": "Cooked bones",
+                "nameKo": "익힌 뼈",
+                "danger": "Splinters can cause intestinal perforation",
+                "dangerKo": "파편이 장 천공을 유발할 수 있음"
+            },
+            {
+                "name": "Fatty/fried foods",
+                "nameKo": "기름진/튀긴 음식",
+                "danger": "Can trigger pancreatitis",
+                "dangerKo": "췌장염을 유발할 수 있음"
+            }
+        ]
+    }
+}

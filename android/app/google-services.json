@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1044129754458",
+    "project_id": "poopbuddy-12ad1",
+    "storage_bucket": "poopbuddy-12ad1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1044129754458:android:932cbc5b6b2700ac1c5763",
+        "android_client_info": {
+          "package_name": "com.poopbuddy.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1044129754458-qq4ivh8v2qake8qpgmlcjtoauv45us4v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.poopbuddy.app",
+            "certificate_hash": "d29f6c6816d3c2b15f192325eb30e26551bcd8b9"
+          }
+        },
+        {
+          "client_id": "1044129754458-t11224vfdcbh4fhcbvn2kc9m50i1im92.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDN1fc2uth2PUMP1GLMV32gK9MLeaaUDJk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1044129754458-t11224vfdcbh4fhcbvn2kc9m50i1im92.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

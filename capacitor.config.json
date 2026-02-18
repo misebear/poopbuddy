@@ -1,0 +1,37 @@
+{
+    "appId": "com.poopbuddy.app",
+    "appName": "PoopBuddy",
+    "webDir": "www",
+    "server": {
+        "androidScheme": "https",
+        "allowNavigation": [
+            "kauth.kakao.com",
+            "accounts.kakao.com",
+            "account.kakao.com",
+            "auth.kakao.com",
+            "*.kakao.com"
+        ]
+    },
+    "plugins": {
+        "SplashScreen": {
+            "launchShowDuration": 2000,
+            "backgroundColor": "#FFF8F0",
+            "showSpinner": false,
+            "androidScaleType": "CENTER_CROP"
+        },
+        "AdMob": {
+            "appId": "ca-app-pub-9072876824288260~7058634144"
+        },
+        "GoogleAuth": {
+            "scopes": [
+                "profile",
+                "email"
+            ],
+            "serverClientId": "1044129754458-t11224vfdcbh4fhcbvn2kc9m50i1im92.apps.googleusercontent.com",
+            "forceCodeForRefreshToken": true
+        }
+    },
+    "android": {
+        "appendUserAgent": "PoopBuddy/1.0"
+    }
+}
