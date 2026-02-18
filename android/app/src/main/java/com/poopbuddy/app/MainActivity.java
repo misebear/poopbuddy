@@ -13,6 +13,8 @@ import com.getcapacitor.BridgeWebViewClient;
 
 public class MainActivity extends BridgeActivity {
 
+    private boolean backCallbackRegistered = false;
+
     @Override
     public void onStart() {
         super.onStart();
@@ -29,34 +31,37 @@ public class MainActivity extends BridgeActivity {
             settings.setUserAgentString(ua);
         }
 
-        // ── 뒤로가기 핸들러 (Bridge 초기화 후 등록 → 최고 우선순위) ──
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                WebView wv = getBridge().getWebView();
-                if (wv == null) {
+        // ── 뒤로가기 핸들러 (1회만 등록) ──
+        if (!backCallbackRegistered) {
+            backCallbackRegistered = true;
+            getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+                @Override
+                public void handleOnBackPressed() {
+                    WebView wv = getBridge().getWebView();
+                    if (wv == null) {
+                        moveTaskToBack(true);
+                        return;
+                    }
+
+                    String url = wv.getUrl();
+
+                    // 1) 외부 페이지(카카오/네이버 로그인 등) → 앱 메인으로 복귀
+                    if (url != null && !url.startsWith("https://localhost")) {
+                        wv.loadUrl("https://localhost");
+                        return;
+                    }
+
+                    // 2) 앱 내부 히스토리가 있으면 뒤로가기
+                    if (wv.canGoBack()) {
+                        wv.goBack();
+                        return;
+                    }
+
+                    // 3) 더 이상 뒤로갈 곳 없음 → 앱 백그라운드로 (종료X)
                     moveTaskToBack(true);
-                    return;
                 }
-
-                String url = wv.getUrl();
-
-                // 1) 외부 페이지(카카오 로그인 등) → 앱 메인으로 복귀
-                if (url != null && !url.startsWith("https://localhost")) {
-                    wv.loadUrl("https://localhost");
-                    return;
-                }
-
-                // 2) 앱 내부 히스토리가 있으면 뒤로가기
-                if (wv.canGoBack()) {
-                    wv.goBack();
-                    return;
-                }
-
-                // 3) 더 이상 뒤로갈 곳 없음 → 앱 백그라운드로 (종료X)
-                moveTaskToBack(true);
-            }
-        });
+            });
+        }
 
         // ── BridgeWebViewClient 확장: intent:// / kakaotalk:// 처리 ──
         webView.setWebViewClient(new BridgeWebViewClient(getBridge()) {
