@@ -3,6 +3,7 @@ package com.poopbuddy.app;
 import android.content.Intent;
 import android.net.Uri;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 import com.getcapacitor.BridgeActivity;
@@ -14,10 +15,23 @@ public class MainActivity extends BridgeActivity {
     public void onStart() {
         super.onStart();
 
-        // Capacitor BridgeWebViewClient를 상속하여 intent:// 처리 추가
-        // (기존 Capacitor 기능을 모두 유지하면서 카카오톡 앱 호출만 추가)
         if (getBridge() != null && getBridge().getWebView() != null) {
-            getBridge().getWebView().setWebViewClient(new BridgeWebViewClient(getBridge()) {
+            WebView webView = getBridge().getWebView();
+
+            // ── User-Agent에서 "wv" 제거 ──
+            // WebView UA: "...Chrome/xxx Mobile Safari/537.36 wv)"
+            // 일반 Chrome: "...Chrome/xxx Mobile Safari/537.36)"
+            // 카카오 로그인 페이지가 WebView를 감지하면 "카카오톡으로 로그인" 버튼을 숨김
+            // "wv"를 제거하면 일반 브라우저로 인식 → 카카오톡 앱 로그인 버튼 표시
+            WebSettings settings = webView.getSettings();
+            String ua = settings.getUserAgentString();
+            if (ua != null && ua.contains(" wv)")) {
+                ua = ua.replace(" wv)", ")");
+                settings.setUserAgentString(ua);
+            }
+
+            // ── BridgeWebViewClient 확장: intent:// / kakaotalk:// 처리 ──
+            webView.setWebViewClient(new BridgeWebViewClient(getBridge()) {
                 @Override
                 public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                     String url = request.getUrl().toString();
