@@ -25,15 +25,18 @@ function ensureKakaoInit() {
   return window.Kakao && Kakao.isInitialized();
 }
 
-// 카카오 OAuth 콜백 처리
+// 카카오/네이버 OAuth 콜백 처리
 window.addEventListener('DOMContentLoaded', function () {
   ensureKakaoInit();
   var url = new URL(window.location.href);
   var code = url.searchParams.get('code');
-  var kakaoState = url.searchParams.get('state');
-  if (code && kakaoState === 'kakao_login') {
+  var oauthState = url.searchParams.get('state');
+  if (code && oauthState === 'kakao_login') {
     window.history.replaceState({}, document.title, url.pathname);
     handleKakaoCallback(code);
+  } else if (code && oauthState === 'naver_login') {
+    window.history.replaceState({}, document.title, url.pathname);
+    handleNaverCallback(code);
   }
 });
 
@@ -89,6 +92,57 @@ async function handleKakaoCallback(authCode) {
   } catch (err) {
     console.error('[PoopBuddy] Kakao login error:', err);
     showToast('카카오 로그인 실패: ' + (err.message || err));
+  }
+}
+
+// ── 네이버 OAuth 콜백 처리 ──
+async function handleNaverCallback(authCode) {
+  try {
+    showToast('네이버 로그인 처리 중...');
+
+    // 1. auth code → access token
+    var tokenRes = await fetch('https://nid.naver.com/oauth2.0/token'
+      + '?grant_type=authorization_code'
+      + '&client_id=7ae3mXxN0jCj4COX2Gx7'
+      + '&client_secret=1YpSdWfgcO'
+      + '&redirect_uri=' + encodeURIComponent('https://localhost')
+      + '&code=' + authCode
+      + '&state=naver_login');
+    var tokenData = await tokenRes.json();
+    console.log('[PoopBuddy] Naver token:', tokenData);
+
+    if (!tokenData.access_token) {
+      throw new Error(tokenData.error_description || tokenData.error || 'Token exchange failed');
+    }
+
+    // 2. access token → 사용자 프로필 조회
+    var profileRes = await fetch('https://openapi.naver.com/v1/nid/me', {
+      headers: { 'Authorization': 'Bearer ' + tokenData.access_token },
+    });
+    var profileData = await profileRes.json();
+    console.log('[PoopBuddy] Naver profile:', profileData);
+
+    var naverUser = profileData.response || {};
+
+    // 3. DB에 사용자 정보 저장
+    DB.user = {
+      name: naverUser.nickname || naverUser.name || 'Naver User',
+      email: naverUser.email || '',
+      loggedIn: true,
+      provider: 'Naver',
+      photoUrl: naverUser.profile_image || '',
+      naverId: naverUser.id,
+    };
+    saveDB('user');
+    addXP(50, 'Welcome bonus');
+
+    document.getElementById('loginModal')?.remove();
+    showToast('네이버 로그인 완료! 🎉');
+    if (typeof render === 'function') render();
+    if (typeof updateLoginUI === 'function') updateLoginUI();
+  } catch (err) {
+    console.error('[PoopBuddy] Naver login error:', err);
+    showToast('네이버 로그인 실패: ' + (err.message || err));
   }
 }
 
@@ -3347,7 +3401,15 @@ async function socialLogin(provider) {
   }
 
   if (provider === 'naver') {
-    showToast(state.lang === 'ko' ? '준비 중입니다 (곧 지원 예정)' : 'Coming soon');
+    // ── 네이버 로그인: WebView OAuth ──
+    showToast(state.lang === 'ko' ? '네이버 로그인 중...' : 'Signing in with Naver...');
+    var redirectUri = 'https://localhost';
+    var naverOAuthUrl = 'https://nid.naver.com/oauth2.0/authorize'
+      + '?client_id=7ae3mXxN0jCj4COX2Gx7'
+      + '&redirect_uri=' + encodeURIComponent(redirectUri)
+      + '&response_type=code'
+      + '&state=naver_login';
+    window.location.href = naverOAuthUrl;
     return;
   }
 

@@ -9,7 +9,9 @@
             "accounts.kakao.com",
             "account.kakao.com",
             "auth.kakao.com",
-            "*.kakao.com"
+            "*.kakao.com",
+            "nid.naver.com",
+            "*.naver.com"
         ]
     },
     "plugins": {
