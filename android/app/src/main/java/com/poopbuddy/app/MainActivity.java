@@ -2,14 +2,47 @@ package com.poopbuddy.app;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+
+import androidx.activity.OnBackPressedCallback;
 
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.BridgeWebViewClient;
 
 public class MainActivity extends BridgeActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // ── 뒤로가기 버튼: 외부 페이지(카카오 로그인 등)에서 앱 메인으로 복귀 ──
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (getBridge() != null && getBridge().getWebView() != null) {
+                    WebView webView = getBridge().getWebView();
+                    String url = webView.getUrl();
+
+                    // 외부 페이지에서 뒤로가기 → 앱 메인으로 복귀
+                    if (url != null && !url.contains("localhost")) {
+                        webView.loadUrl("https://localhost");
+                        return;
+                    }
+
+                    // 앱 내부에서 뒤로가기 → WebView 히스토리 뒤로
+                    if (webView.canGoBack()) {
+                        webView.goBack();
+                        return;
+                    }
+                }
+                // 더 이상 뒤로갈 곳이 없으면 앱 종료
+                finish();
+            }
+        });
+    }
 
     @Override
     public void onStart() {
@@ -19,10 +52,6 @@ public class MainActivity extends BridgeActivity {
             WebView webView = getBridge().getWebView();
 
             // ── User-Agent에서 "wv" 제거 ──
-            // WebView UA: "...Chrome/xxx Mobile Safari/537.36 wv)"
-            // 일반 Chrome: "...Chrome/xxx Mobile Safari/537.36)"
-            // 카카오 로그인 페이지가 WebView를 감지하면 "카카오톡으로 로그인" 버튼을 숨김
-            // "wv"를 제거하면 일반 브라우저로 인식 → 카카오톡 앱 로그인 버튼 표시
             WebSettings settings = webView.getSettings();
             String ua = settings.getUserAgentString();
             if (ua != null && ua.contains(" wv)")) {
@@ -77,26 +106,9 @@ public class MainActivity extends BridgeActivity {
                         return true;
                     }
 
-                    // 나머지는 Capacitor 기본 처리에 위임
                     return super.shouldOverrideUrlLoading(view, request);
                 }
             });
         }
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public void onBackPressed() {
-        if (getBridge() != null && getBridge().getWebView() != null) {
-            WebView webView = getBridge().getWebView();
-            String url = webView.getUrl();
-
-            // 외부 페이지(카카오 로그인 등)에서 뒤로가기 → 앱 메인으로 복귀
-            if (url != null && !url.contains("localhost")) {
-                webView.loadUrl("https://localhost");
-                return;
-            }
-        }
-        super.onBackPressed();
     }
 }

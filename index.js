@@ -238,6 +238,7 @@ function updateLoginUI() {
         localStorage.removeItem('pb-user');
         updateLoginUI();
         if (typeof showToast === 'function') showToast('Logged out successfully');
+        if (typeof showLoginModal === 'function') showLoginModal();
       }
     };
   } else {
@@ -3446,6 +3447,7 @@ async function firebaseLogout() {
     document.getElementById('loginModal')?.remove();
     showToast(state.lang === 'ko' ? '로그아웃 완료' : 'Logged out');
     render();
+    showLoginModal();
   } catch (err) {
     console.error('Logout error:', err);
   }
