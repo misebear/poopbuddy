@@ -1219,48 +1219,98 @@ function renderLanding() {
     const isActive = state.mode === m;
     const modeIcons = {
       dog: `<svg viewBox="0 0 80 80" width="48" height="48">
-            <ellipse cx="40" cy="52" rx="22" ry="18" fill="#A8E6CF"/>
-            <ellipse cx="40" cy="35" rx="18" ry="16" fill="#A8E6CF"/>
-            <path d="M22 28c-6-12-14-8-12-2s6 12 12 10" fill="#7DD3B0"/>
-            <path d="M58 28c6-12 14-8 12-2s-6 12-12 10" fill="#7DD3B0"/>
-            <circle cx="34" cy="33" r="2.8" fill="#2E7D5A"/>
-            <circle cx="46" cy="33" r="2.8" fill="#2E7D5A"/>
-            <circle cx="33" cy="32" r="0.9" fill="#fff"/>
-            <circle cx="45" cy="32" r="0.9" fill="#fff"/>
-            <ellipse cx="40" cy="38" rx="3.5" ry="2.2" fill="#5BB89A"/>
-            <path d="M37 41c1.5 2 4.5 2 6 0" stroke="#5BB89A" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-            <circle cx="28" cy="38" r="4" fill="#FFB5B5" opacity="0.5"/>
-            <circle cx="52" cy="38" r="4" fill="#FFB5B5" opacity="0.5"/>
+            <!-- Golden retriever style dog -->
+            <circle cx="40" cy="42" r="22" fill="#EDCE8C"/>
+            <!-- Floppy ears -->
+            <ellipse cx="20" cy="36" rx="9" ry="14" fill="#D4A854" transform="rotate(-10 20 36)"/>
+            <ellipse cx="60" cy="36" rx="9" ry="14" fill="#D4A854" transform="rotate(10 60 36)"/>
+            <!-- Face -->
+            <circle cx="40" cy="38" r="18" fill="#EDCE8C"/>
+            <!-- Snout area -->
+            <ellipse cx="40" cy="46" rx="11" ry="8" fill="#F5DFA8"/>
+            <!-- Big nose -->
+            <ellipse cx="40" cy="43" rx="5" ry="3.5" fill="#5D4037"/>
+            <ellipse cx="39" cy="42" rx="1.5" ry="1" fill="#8D6E63"/>
+            <!-- Eyes - warm brown -->
+            <circle cx="32" cy="35" r="4" fill="#fff"/>
+            <circle cx="48" cy="35" r="4" fill="#fff"/>
+            <circle cx="33" cy="35" r="2.8" fill="#5D4037"/>
+            <circle cx="49" cy="35" r="2.8" fill="#5D4037"/>
+            <circle cx="32" cy="34" r="1" fill="#fff"/>
+            <circle cx="48" cy="34" r="1" fill="#fff"/>
+            <!-- Mouth + tongue -->
+            <path d="M36 49c2 2 6 2 8 0" stroke="#8D6E63" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+            <ellipse cx="40" cy="52" rx="3" ry="4" fill="#FF8A80"/>
+            <!-- Cheek blush -->
+            <circle cx="26" cy="42" r="4" fill="#FFB5B5" opacity="0.35"/>
+            <circle cx="54" cy="42" r="4" fill="#FFB5B5" opacity="0.35"/>
           </svg>`,
       cat: `<svg viewBox="0 0 80 80" width="48" height="48">
-            <ellipse cx="40" cy="52" rx="20" ry="16" fill="#FFD3B6"/>
-            <ellipse cx="40" cy="36" rx="18" ry="16" fill="#FFD3B6"/>
-            <path d="M22 26L18 10l14 12z" fill="#FFB997"/>
-            <path d="M58 26L62 10l-14 12z" fill="#FFB997"/>
-            <circle cx="34" cy="34" r="2.8" fill="#E65100"/>
-            <circle cx="46" cy="34" r="2.8" fill="#E65100"/>
-            <circle cx="33" cy="33" r="0.9" fill="#fff"/>
-            <circle cx="45" cy="33" r="0.9" fill="#fff"/>
-            <ellipse cx="40" cy="39" rx="2.5" ry="1.5" fill="#FF7043"/>
-            <path d="M37 41c1.5 2 4.5 2 6 0" stroke="#FF7043" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-            <line x1="18" y1="36" x2="28" y2="38" stroke="#FFAB91" stroke-width="1"/>
-            <line x1="18" y1="40" x2="28" y2="40" stroke="#FFAB91" stroke-width="1"/>
-            <line x1="62" y1="36" x2="52" y2="38" stroke="#FFAB91" stroke-width="1"/>
-            <line x1="62" y1="40" x2="52" y2="40" stroke="#FFAB91" stroke-width="1"/>
-            <circle cx="28" cy="40" r="4" fill="#FFAB91" opacity="0.5"/>
-            <circle cx="52" cy="40" r="4" fill="#FFAB91" opacity="0.5"/>
+            <!-- Orange tabby cat -->
+            <circle cx="40" cy="44" r="20" fill="#FFB74D"/>
+            <!-- Pointy ears with pink insides -->
+            <polygon points="22,32 16,8 32,24" fill="#FFB74D"/>
+            <polygon points="24,30 20,14 30,25" fill="#FFCDD2"/>
+            <polygon points="58,32 64,8 48,24" fill="#FFB74D"/>
+            <polygon points="56,30 60,14 50,25" fill="#FFCDD2"/>
+            <!-- Face -->
+            <circle cx="40" cy="40" r="17" fill="#FFB74D"/>
+            <!-- Tabby stripes -->
+            <path d="M34 28c2-2 4-2 6 0" stroke="#E68A00" stroke-width="1.2" fill="none"/>
+            <path d="M38 26c1-1 3-1 4 0" stroke="#E68A00" stroke-width="1" fill="none"/>
+            <!-- Green slit eyes -->
+            <ellipse cx="32" cy="37" rx="4" ry="4.5" fill="#C8E6C9"/>
+            <ellipse cx="48" cy="37" rx="4" ry="4.5" fill="#C8E6C9"/>
+            <ellipse cx="32" cy="37" rx="1.5" ry="4.5" fill="#2E7D32"/>
+            <ellipse cx="48" cy="37" rx="1.5" ry="4.5" fill="#2E7D32"/>
+            <circle cx="31" cy="36" r="0.8" fill="#fff"/>
+            <circle cx="47" cy="36" r="0.8" fill="#fff"/>
+            <!-- Small pink nose -->
+            <polygon points="40,43 38,45 42,45" fill="#FF8A80"/>
+            <!-- Whiskers -->
+            <line x1="14" y1="40" x2="28" y2="42" stroke="#E68A00" stroke-width="0.8" opacity="0.6"/>
+            <line x1="14" y1="44" x2="28" y2="44" stroke="#E68A00" stroke-width="0.8" opacity="0.6"/>
+            <line x1="14" y1="48" x2="28" y2="46" stroke="#E68A00" stroke-width="0.8" opacity="0.6"/>
+            <line x1="66" y1="40" x2="52" y2="42" stroke="#E68A00" stroke-width="0.8" opacity="0.6"/>
+            <line x1="66" y1="44" x2="52" y2="44" stroke="#E68A00" stroke-width="0.8" opacity="0.6"/>
+            <line x1="66" y1="48" x2="52" y2="46" stroke="#E68A00" stroke-width="0.8" opacity="0.6"/>
+            <!-- Mouth -->
+            <path d="M37 47c1.5 1.5 4.5 1.5 6 0" stroke="#E68A00" stroke-width="1" fill="none" stroke-linecap="round"/>
+            <!-- Cheek blush -->
+            <circle cx="25" cy="44" r="4" fill="#FFCDD2" opacity="0.35"/>
+            <circle cx="55" cy="44" r="4" fill="#FFCDD2" opacity="0.35"/>
           </svg>`,
       human: `<svg viewBox="0 0 80 80" width="48" height="48">
-            <ellipse cx="40" cy="52" rx="22" ry="18" fill="#D1C4E9"/>
-            <ellipse cx="40" cy="34" rx="17" ry="16" fill="#D1C4E9"/>
-            <path d="M23 30c0-14 10-20 17-20s17 6 17 20" fill="#7E57C2"/>
-            <circle cx="34" cy="34" r="2.4" fill="#4A148C"/>
-            <circle cx="46" cy="34" r="2.4" fill="#4A148C"/>
-            <circle cx="33" cy="33" r="0.8" fill="#fff"/>
-            <circle cx="45" cy="33" r="0.8" fill="#fff"/>
-            <path d="M37 40c1.5 1.5 4.5 1.5 6 0" stroke="#CE93D8" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-            <circle cx="28" cy="38" r="4" fill="#E1BEE7" opacity="0.5"/>
-            <circle cx="52" cy="38" r="4" fill="#E1BEE7" opacity="0.5"/>
+            <!-- Human face - natural skin tone -->
+            <circle cx="40" cy="44" r="20" fill="#FDDCB5"/>
+            <!-- Hair - warm brown -->
+            <path d="M20 38c0-16 9-26 20-26s20 10 20 26" fill="#6D4C41"/>
+            <ellipse cx="40" cy="14" rx="16" ry="6" fill="#6D4C41"/>
+            <!-- Side hair -->
+            <ellipse cx="22" cy="36" rx="4" ry="8" fill="#6D4C41"/>
+            <ellipse cx="58" cy="36" rx="4" ry="8" fill="#6D4C41"/>
+            <!-- Face -->
+            <circle cx="40" cy="42" r="17" fill="#FDDCB5"/>
+            <!-- Eyes - expressive -->
+            <ellipse cx="33" cy="39" rx="3.5" ry="3" fill="#fff"/>
+            <ellipse cx="47" cy="39" rx="3.5" ry="3" fill="#fff"/>
+            <circle cx="34" cy="39" r="2.2" fill="#4E342E"/>
+            <circle cx="48" cy="39" r="2.2" fill="#4E342E"/>
+            <circle cx="33" cy="38" r="0.8" fill="#fff"/>
+            <circle cx="47" cy="38" r="0.8" fill="#fff"/>
+            <!-- Eyebrows -->
+            <path d="M29 35c2-2 6-2 8 0" stroke="#5D4037" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <path d="M43 35c2-2 6-2 8 0" stroke="#5D4037" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <!-- Nose -->
+            <path d="M39 44c0.5 1.5 1.5 1.5 2 0" stroke="#D4A08A" stroke-width="1.2" fill="none"/>
+            <!-- Smile -->
+            <path d="M34 49c3 3 9 3 12 0" stroke="#E08080" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <!-- Cheek blush -->
+            <circle cx="27" cy="46" r="4" fill="#FFCDD2" opacity="0.4"/>
+            <circle cx="53" cy="46" r="4" fill="#FFCDD2" opacity="0.4"/>
+            <!-- Ears -->
+            <ellipse cx="22" cy="42" rx="3" ry="5" fill="#F5C8A8"/>
+            <ellipse cx="58" cy="42" rx="3" ry="5" fill="#F5C8A8"/>
           </svg>`
     };
     return `<div onclick="haptic('light');state.mode='${m}';render()" style="width:68px;height:68px;border-radius:50%;background:${c.bg};display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s ease;${isActive ? `box-shadow:0 0 0 3px ${c.ring};transform:scale(1.12)` : 'opacity:0.7'}">${modeIcons[m]}</div>`;

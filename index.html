@@ -47,6 +47,247 @@
 </head>
 
 <body>
+  <!-- Animated Splash Screen -->
+  <div id="splashScreen"
+    style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:linear-gradient(170deg,#FFF8F0 0%,#FFE8D6 50%,#FDDCB5 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.6s ease">
+    <style>
+      @keyframes dogRun {
+        0% {
+          transform: translateX(-120px) scaleX(1)
+        }
+
+        25% {
+          transform: translateX(40px) scaleX(1) translateY(-15px)
+        }
+
+        50% {
+          transform: translateX(120px) scaleX(1)
+        }
+
+        75% {
+          transform: translateX(40px) scaleX(-1) translateY(-10px)
+        }
+
+        100% {
+          transform: translateX(-120px) scaleX(-1)
+        }
+      }
+
+      @keyframes catPlay {
+        0% {
+          transform: translateX(100px) scaleX(-1)
+        }
+
+        20% {
+          transform: translateX(30px) scaleX(-1) translateY(-20px)
+        }
+
+        40% {
+          transform: translateX(-40px) scaleX(-1)
+        }
+
+        60% {
+          transform: translateX(-40px) scaleX(1) translateY(-8px)
+        }
+
+        80% {
+          transform: translateX(50px) scaleX(1)
+        }
+
+        100% {
+          transform: translateX(100px) scaleX(1)
+        }
+      }
+
+      @keyframes ballBounce {
+
+        0%,
+        100% {
+          transform: translateY(0) scale(1)
+        }
+
+        50% {
+          transform: translateY(-25px) scale(0.9)
+        }
+      }
+
+      @keyframes paw1 {
+        0% {
+          opacity: 0;
+          transform: translateY(20px) rotate(-15deg)
+        }
+
+        50% {
+          opacity: 0.3
+        }
+
+        100% {
+          opacity: 0;
+          transform: translateY(-30px) rotate(15deg)
+        }
+      }
+
+      @keyframes paw2 {
+        0% {
+          opacity: 0;
+          transform: translateY(10px) rotate(10deg)
+        }
+
+        50% {
+          opacity: 0.25
+        }
+
+        100% {
+          opacity: 0;
+          transform: translateY(-40px) rotate(-10deg)
+        }
+      }
+
+      @keyframes paw3 {
+        0% {
+          opacity: 0;
+          transform: translateY(15px)
+        }
+
+        50% {
+          opacity: 0.2
+        }
+
+        100% {
+          opacity: 0;
+          transform: translateY(-35px)
+        }
+      }
+
+      @keyframes logoFade {
+        0% {
+          opacity: 0;
+          transform: translateY(20px)
+        }
+
+        100% {
+          opacity: 1;
+          transform: translateY(0)
+        }
+      }
+
+      @keyframes tailWag {
+
+        0%,
+        100% {
+          transform: rotate(-20deg)
+        }
+
+        50% {
+          transform: rotate(25deg)
+        }
+      }
+    </style>
+    <!-- Floating paw prints -->
+    <div style="position:absolute;top:15%;left:20%;font-size:1.5rem;animation:paw1 2s ease-in-out infinite;opacity:0">🐾
+    </div>
+    <div
+      style="position:absolute;top:25%;right:15%;font-size:1.2rem;animation:paw2 2.5s ease-in-out infinite 0.5s;opacity:0">
+      🐾</div>
+    <div
+      style="position:absolute;top:60%;left:12%;font-size:1rem;animation:paw3 1.8s ease-in-out infinite 1s;opacity:0">🐾
+    </div>
+    <div
+      style="position:absolute;top:70%;right:20%;font-size:1.3rem;animation:paw1 2.2s ease-in-out infinite 0.3s;opacity:0">
+      🐾</div>
+    <!-- Dog running -->
+    <div style="position:relative;width:300px;height:140px;margin-bottom:10px;overflow:visible">
+      <svg viewBox="0 0 120 80" width="72" height="48"
+        style="position:absolute;bottom:20px;left:50%;animation:dogRun 3s ease-in-out infinite">
+        <!-- Dog body -->
+        <ellipse cx="60" cy="45" rx="28" ry="18" fill="#D4A854" />
+        <!-- Dog head -->
+        <circle cx="85" cy="32" r="16" fill="#D4A854" />
+        <!-- Floppy ears -->
+        <ellipse cx="76" cy="22" rx="7" ry="12" fill="#B8863C" transform="rotate(-20 76 22)" />
+        <ellipse cx="96" cy="24" rx="6" ry="10" fill="#B8863C" transform="rotate(15 96 24)" />
+        <!-- Snout -->
+        <ellipse cx="96" cy="36" rx="8" ry="6" fill="#E8C98A" />
+        <ellipse cx="97" cy="33" rx="3" ry="2" fill="#3E2723" />
+        <!-- Eyes -->
+        <circle cx="81" cy="30" r="2.5" fill="#3E2723" />
+        <circle cx="91" cy="29" r="2.5" fill="#3E2723" />
+        <circle cx="80" cy="29" r="0.8" fill="#fff" />
+        <circle cx="90" cy="28" r="0.8" fill="#fff" />
+        <!-- Mouth -->
+        <path d="M92 38c2 2 6 2 8 0" stroke="#B8863C" stroke-width="1" fill="none" />
+        <!-- Tongue -->
+        <ellipse cx="96" cy="40" rx="3" ry="4" fill="#FF8A80" />
+        <!-- Legs -->
+        <rect x="38" y="58" width="5" height="16" rx="2" fill="#B8863C" />
+        <rect x="50" y="58" width="5" height="14" rx="2" fill="#B8863C" />
+        <rect x="68" y="58" width="5" height="16" rx="2" fill="#B8863C" />
+        <rect x="78" y="58" width="5" height="14" rx="2" fill="#B8863C" />
+        <!-- Tail -->
+        <path d="M32 38c-8-5-12-15-8-22" stroke="#D4A854" stroke-width="5" fill="none" stroke-linecap="round"
+          style="transform-origin:32px 38px;animation:tailWag 0.4s ease-in-out infinite" />
+      </svg>
+      <!-- Ball bouncing -->
+      <div
+        style="position:absolute;bottom:16px;left:50%;margin-left:-60px;animation:ballBounce 0.6s ease-in-out infinite">
+        <svg viewBox="0 0 20 20" width="16" height="16">
+          <circle cx="10" cy="10" r="8" fill="#FF5252" />
+          <path d="M6 4c4 3 4 12 0 16M14 4c-4 3-4 12 0 16" stroke="#fff" stroke-width="1" fill="none" opacity="0.5" />
+        </svg>
+      </div>
+      <!-- Cat playing -->
+      <svg viewBox="0 0 100 70" width="64" height="44"
+        style="position:absolute;bottom:20px;left:50%;animation:catPlay 3.5s ease-in-out infinite 0.5s">
+        <!-- Cat body -->
+        <ellipse cx="50" cy="42" rx="22" ry="14" fill="#888" />
+        <!-- Cat head -->
+        <circle cx="72" cy="30" r="13" fill="#888" />
+        <!-- Pointy ears -->
+        <polygon points="63,20 59,6 68,16" fill="#888" />
+        <polygon points="63,20 59,6 68,16" fill="#FFB0B0" transform="scale(0.6) translate(43,12)" />
+        <polygon points="81,18 85,4 76,14" fill="#888" />
+        <polygon points="81,18 85,4 76,14" fill="#FFB0B0" transform="scale(0.6) translate(56,10)" />
+        <!-- Eyes (slit pupils) -->
+        <ellipse cx="67" cy="28" rx="2.5" ry="3" fill="#8BC34A" />
+        <ellipse cx="67" cy="28" rx="1" ry="3" fill="#1B5E20" />
+        <ellipse cx="77" cy="27" rx="2.5" ry="3" fill="#8BC34A" />
+        <ellipse cx="77" cy="27" rx="1" ry="3" fill="#1B5E20" />
+        <!-- Nose -->
+        <polygon points="72,32 70,34 74,34" fill="#FFB0B0" />
+        <!-- Whiskers -->
+        <line x1="56" y1="31" x2="65" y2="32" stroke="#aaa" stroke-width="0.7" />
+        <line x1="56" y1="34" x2="65" y2="34" stroke="#aaa" stroke-width="0.7" />
+        <line x1="88" y1="30" x2="79" y2="32" stroke="#aaa" stroke-width="0.7" />
+        <line x1="88" y1="33" x2="79" y2="34" stroke="#aaa" stroke-width="0.7" />
+        <!-- Legs -->
+        <rect x="32" y="52" width="4" height="14" rx="2" fill="#777" />
+        <rect x="42" y="52" width="4" height="12" rx="2" fill="#777" />
+        <rect x="58" y="52" width="4" height="14" rx="2" fill="#777" />
+        <rect x="66" y="52" width="4" height="12" rx="2" fill="#777" />
+        <!-- Tail -->
+        <path d="M28 40c-10 0-14-10-8-18" stroke="#888" stroke-width="4" fill="none" stroke-linecap="round" />
+      </svg>
+    </div>
+    <!-- Logo -->
+    <div style="text-align:center;animation:logoFade 1s ease-out 0.3s both">
+      <div style="font-size:2rem;font-weight:900;color:#5D4037;letter-spacing:-1px">💩 PoopBuddy</div>
+      <div style="font-size:0.75rem;color:#8D6E63;margin-top:4px;letter-spacing:1px">AI 장건강 분석</div>
+    </div>
+    <!-- Loading dots -->
+    <div style="margin-top:24px;display:flex;gap:8px;animation:logoFade 1s ease-out 0.6s both">
+      <div
+        style="width:8px;height:8px;border-radius:50%;background:#D4A854;animation:ballBounce 0.6s ease-in-out infinite">
+      </div>
+      <div
+        style="width:8px;height:8px;border-radius:50%;background:#888;animation:ballBounce 0.6s ease-in-out infinite 0.2s">
+      </div>
+      <div
+        style="width:8px;height:8px;border-radius:50%;background:#FF8A80;animation:ballBounce 0.6s ease-in-out infinite 0.4s">
+      </div>
+    </div>
+  </div>
+  <script>setTimeout(function () { var s = document.getElementById('splashScreen'); if (s) { s.style.opacity = '0'; setTimeout(function () { s.remove() }, 600) } }, 2500);</script>
+
   <!-- Navigation -->
   <nav class="navbar" id="navbar">
     <div class="nav-container">
