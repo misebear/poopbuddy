@@ -167,11 +167,27 @@ async function handleNaverCallback(authCode) {
 (function initAdMob() {
   // Capacitor 네이티브 환경인지 확인
   const isNative = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+
+  // 네이티브: SplashScreen 즉시 숨기기 (아이콘 확대 화면 제거)
+  if (isNative) {
+    try {
+      const { SplashScreen } = window.Capacitor.Plugins;
+      if (SplashScreen) SplashScreen.hide();
+    } catch (e) { console.warn('SplashScreen hide failed', e); }
+  }
+
   if (!isNative) return; // 웹에서는 AdSense 사용 → 여기서 종료
 
-  // 네이티브에서는 CSS 기반 AdSense 배너 숨기기
+  // 네이티브에서는 CSS 기반 AdSense 배너 및 인피드 광고 숨기기
   const adBanner = document.getElementById('adBannerBottom');
   if (adBanner) adBanner.style.display = 'none';
+  // 인피드 광고 플레이스홀더도 숨기기 (AdMob 배너가 대신 표시됨)
+  document.querySelectorAll('.ad-infeed').forEach(el => { el.style.display = 'none'; });
+  // 동적으로 생성되는 인피드도 숨기기
+  const obs = new MutationObserver(() => {
+    document.querySelectorAll('.ad-infeed').forEach(el => { el.style.display = 'none'; });
+  });
+  obs.observe(document.body, { childList: true, subtree: true });
 
   // Android 상태바 겹침 방지 (JS 기반)
   const navbar = document.getElementById('navbar');
@@ -186,7 +202,7 @@ async function handleNaverCallback(authCode) {
 
       // AdMob 초기화
       await AdMob.initialize({
-        initializeForTesting: false,
+        initializeForTesting: true,
       });
       console.log('[PoopBuddy] AdMob initialized');
 
@@ -3073,7 +3089,10 @@ function renderMore() {
           </div>`).join('')}
       </div>
     </div>
-    <div class="ad-infeed" style="margin-top:24px">${t('adSlot')}</div>
+    <div class="ad-infeed" style="margin-top:24px;padding:16px;background:var(--bg-secondary,#f5f5f5);border-radius:14px;text-align:center;min-height:100px;display:flex;align-items:center;justify-content:center">
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9072876824288260" data-ad-slot="auto" data-ad-format="fluid" data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
   </div>`;
 }
 
