@@ -3829,6 +3829,131 @@ function getDBText(obj, field) {
   return obj[field] || obj[field + 'Ko'] || '';
 }
 
+// ── Stool Photo Validation Engine ──
+// Canvas-based pixel color analysis to detect non-stool images
+function validateStoolImage(imgSrc) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const maxDim = 150; // Downsample for speed
+      const scale = Math.min(maxDim / img.width, maxDim / img.height, 1);
+      canvas.width = Math.floor(img.width * scale);
+      canvas.height = Math.floor(img.height * scale);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      const total = data.length / 4;
+
+      // Color category counters
+      let brownish = 0;   // Brown/dark yellow/olive (stool-like)
+      let greenish = 0;   // Dark green (stool-like)
+      let white = 0;      // Very bright/white (documents, paper)
+      let black = 0;      // Very dark (could be toilet)
+      let vivid = 0;      // Highly saturated non-brown (food, UI, etc.)
+      let skin = 0;       // Skin tones
+      let blueish = 0;    // Blue/sky (unlikely stool)
+      let reddish = 0;    // Red tones
+
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i], g = data[i + 1], b = data[i + 2];
+        // Convert to HSL
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        const l = (max + min) / 2 / 255;
+        const d = max - min;
+        const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1)) / 255;
+        let h = 0;
+        if (d > 0) {
+          if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) * 60;
+          else if (max === g) h = ((b - r) / d + 2) * 60;
+          else h = ((r - g) / d + 4) * 60;
+        }
+
+        // Classification
+        if (l > 0.92) { white++; continue; }
+        if (l < 0.08) { black++; continue; }
+
+        // Brown range: H=15-50, moderate S, L=0.1-0.55
+        if (h >= 15 && h <= 55 && l >= 0.1 && l <= 0.55 && s >= 0.15) {
+          brownish++;
+        }
+        // Dark olive/green-brown: H=50-120, lower sat, darker
+        else if (h >= 50 && h <= 120 && l >= 0.08 && l <= 0.4 && s <= 0.6) {
+          greenish++;
+        }
+        // Vivid blue: H=180-260
+        else if (h >= 180 && h <= 260 && s > 0.3 && l > 0.2) {
+          blueish++;
+        }
+        // Vivid colors (non-brown, high saturation)
+        else if (s > 0.5 && l > 0.3 && l < 0.7) {
+          vivid++;
+        }
+        // Skin tones: H=10-40, S=0.2-0.7, L=0.3-0.8
+        else if (h >= 10 && h <= 40 && s >= 0.2 && s <= 0.7 && l >= 0.3 && l <= 0.8) {
+          skin++;
+        }
+        // Red: H=0-15 or 340-360
+        else if ((h < 15 || h > 340) && s > 0.35 && l > 0.15) {
+          reddish++;
+        }
+      }
+
+      const stoolLike = brownish + greenish;
+      const stoolPct = stoolLike / total;
+      const whitePct = white / total;
+      const vividPct = vivid / total;
+      const bluePct = blueish / total;
+      const blackPct = black / total;
+      const skinPct = skin / total;
+
+      // Decision logic
+      let isStool = true;
+      let reason = '';
+
+      // Document/paper: mostly white
+      if (whitePct > 0.55) {
+        isStool = false;
+        reason = 'document';
+      }
+      // Screen/UI: too many vivid colors
+      else if (vividPct > 0.35) {
+        isStool = false;
+        reason = 'colorful';
+      }
+      // Blue sky/water/screen
+      else if (bluePct > 0.25) {
+        isStool = false;
+        reason = 'blue';
+      }
+      // Too little brown/green → not stool
+      else if (stoolPct < 0.08 && whitePct + blackPct < 0.8) {
+        isStool = false;
+        reason = 'no_brown';
+      }
+      // Pure black (dark photo is OK if some brown exists)
+      else if (blackPct > 0.7 && stoolPct < 0.05) {
+        isStool = false;
+        reason = 'too_dark';
+      }
+
+      resolve({
+        isStool,
+        reason,
+        confidence: stoolPct,
+        stats: {
+          brownish, greenish, white, black, vivid, blueish, skin, total,
+          stoolPct: (stoolPct * 100).toFixed(1),
+          whitePct: (whitePct * 100).toFixed(1)
+        }
+      });
+    };
+    img.onerror = () => resolve({ isStool: true, reason: 'load_error', confidence: 0 }); // On error, allow analysis
+    img.src = imgSrc;
+  });
+}
+
 async function runAnalysis() {
   // Photo validation — reject obviously non-stool images
   if (!selectedFile && selectedFiles.length === 0) {
@@ -3841,6 +3966,70 @@ async function runAnalysis() {
     showToast(state.lang === 'ko' ? '지원하지 않는 파일 형식입니다. JPG/PNG/HEIC만 가능합니다.' : 'Unsupported file format. Use JPG/PNG/HEIC.');
     return;
   }
+
+  // ── Smart Photo Validation: Canvas color analysis ──
+  const previewImg = document.getElementById('previewImg');
+  if (previewImg && previewImg.src) {
+    const overlay = document.getElementById('loadingOverlay');
+    overlay.classList.add('show');
+    try {
+      const validation = await validateStoolImage(previewImg.src);
+      console.log('[PoopBuddy] Photo validation:', validation);
+      if (!validation.isStool) {
+        overlay.classList.remove('show');
+        const msgs = {
+          document: {
+            ko: '📄 이 사진은 문서/종이로 보입니다.\n대변 사진을 업로드해주세요!',
+            en: '📄 This looks like a document/paper.\nPlease upload a stool photo!',
+            ja: '📄 これは書類/紙のようです。\n便の写真をアップロードしてください！'
+          },
+          colorful: {
+            ko: '🎨 이 사진은 대변 사진이 아닌 것 같습니다.\n실제 대변 사진을 업로드해주세요!',
+            en: '🎨 This doesn\'t look like a stool photo.\nPlease upload an actual stool photo!',
+            ja: '🎨 これは便の写真ではないようです。\n実際の便の写真をアップロードしてください！'
+          },
+          blue: {
+            ko: '🌊 이 사진은 대변 사진이 아닌 것 같습니다.\n대변 사진을 업로드해주세요!',
+            en: '🌊 This doesn\'t look like a stool photo.\nPlease upload a stool photo!',
+            ja: '🌊 これは便の写真ではないようです。\n便の写真をアップロードしてください！'
+          },
+          no_brown: {
+            ko: '🚫 대변이 감지되지 않았습니다.\n대변이 잘 보이는 사진을 업로드해주세요!',
+            en: '🚫 No stool detected in this photo.\nPlease upload a photo with visible stool!',
+            ja: '🚫 便が検出されませんでした。\n便がよく見える写真をアップロードしてください！'
+          },
+          too_dark: {
+            ko: '🌑 사진이 너무 어둡습니다.\n밝은 곳에서 다시 촬영해주세요!',
+            en: '🌑 Photo is too dark.\nPlease retake in a brighter environment!',
+            ja: '🌑 写真が暗すぎます。\n明るい場所で撮り直してください！'
+          }
+        };
+        const msg = msgs[validation.reason] || msgs.no_brown;
+        const txt = msg[state.lang] || msg.en;
+        // Show rejection modal
+        const modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s';
+        modal.innerHTML = `
+          <div style="background:var(--bg-card,#fff);border-radius:20px;padding:28px 24px;max-width:320px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.3)">
+            <div style="font-size:3.5rem;margin-bottom:12px">${validation.reason === 'document' ? '📄' : validation.reason === 'too_dark' ? '🌑' : '🐾'}</div>
+            <h3 style="font-size:1.1rem;font-weight:700;margin:0 0 10px;color:var(--text-primary)">${state.lang === 'ko' ? '대변 사진이 아닙니다!' : state.lang === 'ja' ? '便の写真ではありません！' : 'Not a stool photo!'}</h3>
+            <p style="font-size:0.85rem;color:var(--text-secondary,#666);margin:0 0 20px;line-height:1.5;white-space:pre-line">${txt}</p>
+            <button onclick="this.closest('div[style]').parentElement.remove()" style="padding:12px 28px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent-mint),var(--accent-lavender));color:#fff;font-size:0.9rem;font-weight:700;cursor:pointer">
+              ${state.lang === 'ko' ? '📸 다시 촬영하기' : state.lang === 'ja' ? '📸 撮り直す' : '📸 Try Again'}
+            </button>
+          </div>`;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+        triggerHaptic('notificationWarning');
+        return;
+      }
+    } catch (e) {
+      console.warn('[PoopBuddy] Validation error:', e);
+      // On error, proceed with analysis
+    }
+    overlay.classList.remove('show');
+  }
+
   const overlay = document.getElementById('loadingOverlay');
   overlay.classList.add('show');
   const db = await loadHealthDB();
