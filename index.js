@@ -4553,6 +4553,89 @@ function playSound(type) {
 }
 
 
+// ── 일일 리마인더 알림 시스템 ──
+const REMINDER_KEY = 'pb-reminder';
+const REMINDER_DEFAULTS = { enabled: false, hour: 9, minute: 0, lastShown: '' };
+
+function getReminderSettings() {
+  try { return JSON.parse(localStorage.getItem(REMINDER_KEY)) || { ...REMINDER_DEFAULTS }; }
+  catch { return { ...REMINDER_DEFAULTS }; }
+}
+
+function saveReminderSettings(settings) {
+  localStorage.setItem(REMINDER_KEY, JSON.stringify(settings));
+}
+
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) return false;
+  if (Notification.permission === 'granted') return true;
+  if (Notification.permission === 'denied') return false;
+  const result = await Notification.requestPermission();
+  return result === 'granted';
+}
+
+function showReminderNotification() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const isKo = (state?.lang || 'ko') === 'ko';
+  const isJa = (state?.lang || 'ko') === 'ja';
+  const title = isKo ? '🐾 PoopBuddy 리마인더' : isJa ? '🐾 PoopBuddy リマインダー' : '🐾 PoopBuddy Reminder';
+  const body = isKo ? '오늘의 대변 기록을 남겨보세요! 건강은 매일 챙기는 거예요 💪'
+    : isJa ? '今日の便の記録を残しましょう！健康は毎日のケアから 💪'
+      : 'Time to log your daily stool! Health starts with daily tracking 💪';
+
+  try {
+    const notification = new Notification(title, {
+      body, icon: '/favicon.svg', badge: '/favicon.svg',
+      tag: 'poopbuddy-reminder', renotify: true
+    });
+    notification.onclick = () => { window.focus(); notification.close(); };
+  } catch (e) { console.warn('[Reminder] Notification failed:', e); }
+}
+
+function checkDailyReminder() {
+  const settings = getReminderSettings();
+  if (!settings.enabled) return;
+
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+  if (settings.lastShown === today) return; // 오늘 이미 표시함
+
+  if (now.getHours() >= settings.hour && now.getMinutes() >= settings.minute) {
+    // 오늘 기록이 있는지 확인
+    const history = JSON.parse(localStorage.getItem('pb-history') || '[]');
+    const todayRecords = history.filter(h => h.date && h.date.startsWith(today));
+    if (todayRecords.length === 0) {
+      showReminderNotification();
+      settings.lastShown = today;
+      saveReminderSettings(settings);
+    }
+  }
+}
+
+async function toggleReminder(enabled, hour, minute) {
+  if (enabled) {
+    const granted = await requestNotificationPermission();
+    if (!granted) {
+      showToast(state.lang === 'ko' ? '알림 권한이 필요합니다. 브라우저 설정에서 허용해주세요.' : 'Notification permission required.');
+      return false;
+    }
+  }
+  const settings = getReminderSettings();
+  settings.enabled = enabled;
+  if (hour !== undefined) settings.hour = hour;
+  if (minute !== undefined) settings.minute = minute;
+  saveReminderSettings(settings);
+  showToast(enabled
+    ? (state.lang === 'ko' ? `⏰ 매일 ${settings.hour}시에 알림을 보내드릴게요!` : `⏰ Daily reminder set for ${settings.hour}:00!`)
+    : (state.lang === 'ko' ? '🔕 알림이 꺼졌습니다' : '🔕 Reminders turned off'));
+  return true;
+}
+
+// 30분마다 리마인더 체크
+setInterval(checkDailyReminder, 30 * 60 * 1000);
+// 앱 시작 시 1번 체크
+setTimeout(checkDailyReminder, 5000);
+
 // ── Init ──
 document.addEventListener('DOMContentLoaded', () => {
   // Theme
