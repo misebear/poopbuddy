@@ -1,190 +1,109 @@
-================================================================================
-  PoopBuddy - Development Status
-  Last Updated: 2026-03-01
-================================================================================
+========================================
+  PoopBuddy 개발 현황 🐾
+========================================
+마지막 업데이트: 2026-03-01 11:46 KST
 
-■ PROJECT OVERVIEW
-  App Name:    PoopBuddy (똥버디)
-  Platform:    Android (Capacitor) + Web
-  Languages:   HTML/CSS/JavaScript (Vanilla)
-  Locales:     English, Korean (한국어), Japanese (日本語)
+📌 현재 진행 상태: Phase 1~4 완료 ✅ / Play Store 배포 진행 중
 
-================================================================================
-■ COMPLETED FEATURES
-================================================================================
+========================================
+  ✅ 완료된 작업
+========================================
 
-[✅] CORE UI/UX
-  - iOS-inspired clean design with warm color palette
-  - Dark mode support
-  - Bottom navigation (Home, Camera, Feed, Calendar, WorldMap, Profile)
-  - Haptic feedback on interactions
-  - Responsive layout for mobile
+[Phase 1] AI 분석 통합 ✅
+  - server.js: POST /api/ai-analyze (Gemini 2.0 Flash 프록시)
+  - index.js: runAnalysis() → 서버 AI API 호출, AI/시뮬레이션 뱃지
+  - 모드별(강아지/고양이/사람) 맞춤 프롬프트
+  - API 실패 시 시뮬레이션 폴백
 
-[✅] ANIMATED SPLASH SCREEN
-  - Golden retriever dog running + gray cat playing with bouncing ball
-  - Floating paw prints animation
-  - PoopBuddy logo fade-in
-  - Auto-dismiss after 2.5s with fade-out
-  - Warm gradient background (#FFF8F0 → #FDDCB5)
-  - Native Capacitor splash disabled (launchShowDuration=0 + SplashScreen.hide())
+[Phase 2] 백엔드 연결 ✅
+  - server.js: /api/sync/* 공개 API 라우트 15개 (유저/분석/피드/펫 CRUD)
+  - index.js: ServerSync API 클라이언트 모듈
+    - 자동 UID 생성, 오프라인 큐, online/offline 감지
+    - saveAnalysis/addFeedPost/addPet에 동기화 훅 연결
+    - DOMContentLoaded에서 ServerSync.init() 자동 호출
+  - SQLite DB 영구 저장 (poopbuddy.db)
 
-[✅] MODE SELECTION ICONS (Dog/Cat/Human)
-  - Dog: Golden Retriever — floppy ears, big nose, tongue, warm brown eyes
-  - Cat: Orange Tabby — pointy ears (pink insides), green slit eyes, whiskers
-  - Human: Natural skin tone, brown hair, eyebrows, expressive eyes, smile
-  - Each with distinct color palette and cheek blush
+[Phase 3] 배포 준비 ✅
+  - AdMob 프로덕션 모드 전환 (initializeForTesting: false)
+  - 릴리스 서명키 생성 (android/poopbuddy-release.jks)
+  - build.gradle signingConfigs 설정
+  - AAB 빌드 완료 (android/app/build/outputs/bundle/release/app-release.aab, ~6MB)
+  - Play Console에 PoopBuddy 앱 생성 (JejuBucketList 계정)
+  - 스토어 등록 텍스트(간단/자세한 설명) 입력 저장
 
-[✅] STOOL PHOTO VALIDATION ENGINE
-  - Canvas-based pixel color analysis (HSL) — 1차 필터
-  - Gemini AI Vision 기반 2차 검증 (서버 프록시)
-  - Downsampled to 150px max for speed
-  - Color classification: brownish, greenish, white, black, vivid, blue
-  - Localized rejection modal (KO/EN/JA) with specific reason
-  - Haptic feedback on rejection (notificationWarning)
+[Phase 4] 추가 기능 ✅
+  - 일일 리마인더 알림 (Notification API, 30분 주기 체크, 다국어)
+  - 서비스 워커 전면 개선 (정적 자산 사전 캐시, SPA 오프라인 폴백, 푸시 핸들러)
+  - 캐시 버전 v5
 
-[✅] AI STOOL ANALYSIS (Gemini API) — NEW!
-  - Google AI Studio Gemini 2.0 Flash 모델 연동
-  - 서버 프록시 방식 (/api/ai-analyze) — API 키 보호
-  - Bristol Stool Scale (Type 1-7) 실제 AI 판별
-  - Color analysis (brown, dark_brown, yellow, green, orange, red, black, gray)
-  - Consistency analysis (well_formed, soft_mushy, hard_lumpy, watery, smooth_soft)
-  - Health score (0-100) AI 기반 산출
-  - Mode-specific analysis (dog/cat/human)
-  - Pet 정보(품종, 나이, 체중) 기반 맞춤 프롬프트
-  - AI 조언 카드 (한/영/일 다국어)
-  - AI/시뮬레이션 뱃지 표시
-  - API 실패 시 시뮬레이션 폴백 (오프라인 대응)
-  - 이상 징후(점액, 혈변, 기생충 등) AI 감지
+========================================
+  📋 다음에 할 작업 (우선순위순)
+========================================
 
-[✅] COMMUNITY FEED
-  - Post stool analysis results
-  - Blurred image thumbnails for privacy
-  - Voting system (upvote/downvote)
-  - Hall of Fame (daily winners)
-  - Nickname display
+1. [Play Store] 이미지 업로드 (수동)
+   - store-listing/app-icon-512.png (512x512)
+   - store-listing/feature-graphic-1024x500.png (1024x500)
+   - store-listing/screenshot-1~4.png (1080x1920)
+   - AAB 업로드: android/app/build/outputs/bundle/release/app-release.aab
 
-[✅] CALENDAR / PATTERN TRACKING
-  - Calendar view with daily logs
-  - Streak tracking
-  - Weekly/monthly pattern analysis
-  - Time-of-day heatmap
+2. [Play Store] 필수 설정 완료 (수동)
+   - 콘텐츠 등급 설문
+   - 타겟 잠재고객 설정
+   - 개인정보처리방침 URL
+   - 앱 카테고리 선택
 
-[✅] MULTI-PET PROFILES
-  - Add/manage multiple pets
-  - Per-pet health dashboard
-  - Pet photo upload
+3. [Phase 5] iOS 빌드
+   - npx cap add ios (Mac 환경 필요)
 
-[✅] WORLD POOP MAP
-  - Country-based average health scores
-  - Interactive leaderboard
+========================================
+  ⚠️ 주의사항
+========================================
 
-[✅] DATA MANAGEMENT (Settings Modal)
-  - Nickname (dog+cat themed icon, amber gradient)
-  - Data backup (JSON export)
-  - Data restore (JSON import)
-  - Data reset
-  - Full Korean/Japanese/English i18n
-  - Settings title dynamically translated via .login-header class
+- Gemini API 키: server/.env (GEMINI_API_KEY)
+- AdMob App ID: ca-app-pub-9072876824288260~7058634144
+- 서명키 비밀번호: poopbuddy2026
+- 오프라인 우선 원칙: localStorage가 1차 저장소, 서버는 동기화/백업용
+- 서비스 워커 캐시 버전 변경 시 sw.js CACHE_NAME 업데이트 필수
 
-[✅] SNS SHARING
-  - Web Share API integration
-  - Kakao SDK integration
+========================================
+  🏗️ 프로젝트 구조
+========================================
 
-[✅] ADVERTISING
-  - AdMob (native Android): @capacitor-community/admob v6.2.0
-    · Banner ad: ca-app-pub-9072876824288260/8677568654
-    · Position: BOTTOM_CENTER, margin: 60px
-    · Test mode enabled for debug builds
-  - AdSense (web only): ca-pub-9072876824288260
-    · Bottom banner + in-feed fluid ad
-  - Native app hides all AdSense elements via MutationObserver
-  - In-feed ad placeholder replaced with actual AdSense ins tag
+c:\development\PoopBuddy\
+├── index.html          # 메인 HTML (SPA)
+├── index.js            # 프론트엔드 로직 (5200+ lines)
+├── index.css           # 스타일시트
+├── sw.js               # 서비스 워커 (v5)
+├── manifest.json       # PWA 매니페스트
+├── server.js           # Express + SQLite + Gemini API
+├── capacitor.config.json
+├── package.json
+├── store-listing/      # Play Store 등록 자료
+│   ├── STORE_LISTING.md
+│   ├── app-icon-512.png (512x512)
+│   ├── feature-graphic-1024x500.png (1024x500)
+│   └── screenshot-1~4.png (1080x1920)
+├── server/
+│   └── .env            # GEMINI_API_KEY
+├── android/
+│   ├── poopbuddy-release.jks
+│   └── app/
+│       ├── build.gradle (signingConfigs 포함)
+│       └── build/outputs/bundle/release/app-release.aab
+└── www/                # Capacitor 웹 자산 (빌드 시 동기화)
 
-[✅] AUTHENTICATION
-  - Google login
-  - Kakao login
-  - Naver login
-  - Email/password login
+========================================
+  🚀 실행 방법
+========================================
 
-[✅] VET-READY REPORTS
-  - PDF export with trend charts
-  - Bristol Scale reference
+# 개발 서버
+node server.js          # http://localhost:3000
 
-[✅] STATISTICS DASHBOARD
-  - Weekly/Total views
-  - Average/Best scores
-  - Time-of-day heatmap (Morning/Afternoon/Evening/Night)
-  - Global leaderboard
+# Android 빌드
+scripts\deploy.bat      # 디버그 빌드 + 디바이스 설치
+gradlew bundleRelease   # 릴리스 AAB 빌드
 
-[✅] TOILET TRAINING (Dog/Cat mode)
-  - Daily logging
-  - Accident-free streak
-  - Sit percentage tracking
-
-[✅] FEED BUTTON ICON
-  - 📋 icon added to Feed/피드 button in all 3 locales
-
-================================================================================
-■ TECHNICAL CONFIGURATION
-================================================================================
-
-  Capacitor Config:
-    appId:              com.poopbuddy.app
-    appName:            PoopBuddy
-    webDir:             www
-    SplashScreen:       launchShowDuration=0 (disabled)
-    AdMob Android ID:   ca-app-pub-9072876824288260~XXXXXXXXXX
-
-  Server Config:
-    Main Server:        server.js (Express + SQLite + Firebase Auth)
-    AI Endpoint:        POST /api/ai-analyze (Gemini API 프록시)
-    Gemini Model:       gemini-2.0-flash
-    API Key:            server/.env의 GEMINI_API_KEY
-    Port:               3000 (default)
-
-  Build Commands:
-    Sync:    npx cap sync android
-    Build:   ./android/gradlew.bat -p android assembleDebug
-    APK:     android/app/build/outputs/apk/debug/app-debug.apk
-    Install: adb -s <DEVICE_ID> install -r <APK_PATH>
-    Server:  node server.js
-
-  Key Files:
-    index.html   — Structure, splash screen, settings modal, nav
-    index.js     — All application logic (4900+ lines)
-    index.css    — Styles and design system
-    server.js    — Backend server (SQLite, Firebase Auth, AI Proxy)
-    server/.env  — API keys (GEMINI_API_KEY)
-    capacitor.config.json — Capacitor settings
-
-  Git:
-    Latest commits include all changes above.
-
-================================================================================
-■ TODO / REMAINING WORK
-================================================================================
-
-  [x] Real AI Analysis — Gemini API 연동 완료
-  [x] Smart Photo Validation v2 — AI Vision 기반 검증 완료
-  [ ] Frontend-Backend Connection — Connect to backend server API (feed/auth)
-  [ ] Database Integration — SQLite 스키마는 존재, 프론트엔드 연동 필요
-  [ ] Play Store Release — Prepare store listing, screenshots, description
-  [ ] iOS Build — Add iOS platform and build
-  [ ] AdMob Production — Switch initializeForTesting to false for release
-  [ ] Push Notifications — Daily reminders for logging
-  [ ] Offline Support — Service worker for PWA capabilities
-
-================================================================================
-■ KNOWN ISSUES
-================================================================================
-
-  - Lint errors related to Capacitor AdMob plugin (java.lang.Error class file)
-    → Does not affect build or runtime; related to IDE configuration
-  - AdMob test ads may not always display in debug builds
-    → Real ads will show after Play Store release
-  - Native splash screen (icon zoom) may briefly flash on some devices
-    → Mitigated by SplashScreen.hide() call + launchShowDuration=0
-  - AI analysis requires server to be running (node server.js)
-    → Falls back to simulation if server is offline
-
-================================================================================
+========================================
+  🔧 현재 디버깅 중인 이슈
+========================================
+없음 ✅
