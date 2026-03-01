@@ -1,6 +1,6 @@
 ================================================================================
   PoopBuddy - Development Status
-  Last Updated: 2026-02-19
+  Last Updated: 2026-03-01
 ================================================================================
 
 ■ PROJECT OVERVIEW
@@ -35,25 +35,26 @@
   - Each with distinct color palette and cheek blush
 
 [✅] STOOL PHOTO VALIDATION ENGINE
-  - Canvas-based pixel color analysis (HSL)
+  - Canvas-based pixel color analysis (HSL) — 1차 필터
+  - Gemini AI Vision 기반 2차 검증 (서버 프록시)
   - Downsampled to 150px max for speed
   - Color classification: brownish, greenish, white, black, vivid, blue
-  - Rejection criteria:
-    · Document/Paper: white pixels > 55%
-    · Colorful image: vivid pixels > 35%
-    · Blue image: blue pixels > 25%
-    · No stool detected: stool-like pixels < 8%
-    · Too dark: black pixels > 70%
   - Localized rejection modal (KO/EN/JA) with specific reason
   - Haptic feedback on rejection (notificationWarning)
 
-[✅] STOOL ANALYSIS (Simulated)
-  - Bristol Stool Scale (Type 1-7)
-  - Color analysis (dark brown, light brown, green, yellow, red, black, white)
-  - Texture analysis
-  - Health score (0-100)
+[✅] AI STOOL ANALYSIS (Gemini API) — NEW!
+  - Google AI Studio Gemini 2.0 Flash 모델 연동
+  - 서버 프록시 방식 (/api/ai-analyze) — API 키 보호
+  - Bristol Stool Scale (Type 1-7) 실제 AI 판별
+  - Color analysis (brown, dark_brown, yellow, green, orange, red, black, gray)
+  - Consistency analysis (well_formed, soft_mushy, hard_lumpy, watery, smooth_soft)
+  - Health score (0-100) AI 기반 산출
   - Mode-specific analysis (dog/cat/human)
-  - Multi-photo support
+  - Pet 정보(품종, 나이, 체중) 기반 맞춤 프롬프트
+  - AI 조언 카드 (한/영/일 다국어)
+  - AI/시뮬레이션 뱃지 표시
+  - API 실패 시 시뮬레이션 폴백 (오프라인 대응)
+  - 이상 징후(점액, 혈변, 기생충 등) AI 감지
 
 [✅] COMMUNITY FEED
   - Post stool analysis results
@@ -134,16 +135,26 @@
     SplashScreen:       launchShowDuration=0 (disabled)
     AdMob Android ID:   ca-app-pub-9072876824288260~XXXXXXXXXX
 
+  Server Config:
+    Main Server:        server.js (Express + SQLite + Firebase Auth)
+    AI Endpoint:        POST /api/ai-analyze (Gemini API 프록시)
+    Gemini Model:       gemini-2.0-flash
+    API Key:            server/.env의 GEMINI_API_KEY
+    Port:               3000 (default)
+
   Build Commands:
     Sync:    npx cap sync android
     Build:   ./android/gradlew.bat -p android assembleDebug
     APK:     android/app/build/outputs/apk/debug/app-debug.apk
     Install: adb -s <DEVICE_ID> install -r <APK_PATH>
+    Server:  node server.js
 
   Key Files:
     index.html   — Structure, splash screen, settings modal, nav
-    index.js     — All application logic (4700+ lines)
+    index.js     — All application logic (4900+ lines)
     index.css    — Styles and design system
+    server.js    — Backend server (SQLite, Firebase Auth, AI Proxy)
+    server/.env  — API keys (GEMINI_API_KEY)
     capacitor.config.json — Capacitor settings
 
   Git:
@@ -153,10 +164,10 @@
 ■ TODO / REMAINING WORK
 ================================================================================
 
-  [ ] Real AI Analysis — Integrate Gemini API for actual stool image analysis
-  [ ] Smart Photo Validation v2 — Vision API for more accurate detection
-  [ ] Frontend-Backend Connection — Connect to backend server API
-  [ ] Database Integration — MongoDB or SQLite for persistent storage
+  [x] Real AI Analysis — Gemini API 연동 완료
+  [x] Smart Photo Validation v2 — AI Vision 기반 검증 완료
+  [ ] Frontend-Backend Connection — Connect to backend server API (feed/auth)
+  [ ] Database Integration — SQLite 스키마는 존재, 프론트엔드 연동 필요
   [ ] Play Store Release — Prepare store listing, screenshots, description
   [ ] iOS Build — Add iOS platform and build
   [ ] AdMob Production — Switch initializeForTesting to false for release
@@ -173,5 +184,7 @@
     → Real ads will show after Play Store release
   - Native splash screen (icon zoom) may briefly flash on some devices
     → Mitigated by SplashScreen.hide() call + launchShowDuration=0
+  - AI analysis requires server to be running (node server.js)
+    → Falls back to simulation if server is offline
 
 ================================================================================

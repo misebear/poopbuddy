@@ -4033,35 +4033,115 @@ async function runAnalysis() {
   const overlay = document.getElementById('loadingOverlay');
   overlay.classList.add('show');
   const db = await loadHealthDB();
-  await new Promise(r => setTimeout(r, 1800 + Math.random() * 1200));
+
+  // ── AI 분석 API 호출 (시뮬레이션 폴백 포함) ──
+  let aiResult = null;
+  let isSimulated = true;
+
+  // 활성 펫 정보 수집
+  const activePetForAI = DB.pets.find(p => p.id === DB.activePet);
+  let petInfoForAI = null;
+  if (activePetForAI && (state.mode === 'dog' || state.mode === 'cat')) {
+    petInfoForAI = {
+      name: activePetForAI.name,
+      breed: activePetForAI.breed || '',
+      weight: activePetForAI.weight || 0,
+    };
+    if (activePetForAI.birthday) {
+      const bd = new Date(activePetForAI.birthday);
+      const now = new Date();
+      const months = (now.getFullYear() - bd.getFullYear()) * 12 + (now.getMonth() - bd.getMonth());
+      petInfoForAI.age = months >= 12 ? `${Math.floor(months / 12)} years` : `${months} months`;
+    }
+  }
+
+  try {
+    // 서버 URL 자동 감지 (같은 호스트)
+    const serverUrl = window.location.origin;
+    const response = await fetch(`${serverUrl}/api/ai-analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        image: lastAnalyzedImage,
+        mode: state.mode,
+        lang: state.lang,
+        petInfo: petInfoForAI
+      })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.result) {
+        aiResult = data.result;
+        isSimulated = data.simulated || false;
+        console.log('[PoopBuddy] AI 분석 완료:', isSimulated ? '시뮬레이션' : '실제 AI', aiResult);
+      }
+    }
+  } catch (fetchErr) {
+    console.warn('[PoopBuddy] AI 서버 연결 실패, 시뮬레이션 모드:', fetchErr.message);
+  }
+
+  // AI 분석 실패 시 로컬 시뮬레이션 폴백
+  if (!aiResult) {
+    const results = [
+      { severity: 'good', score: 75 + Math.floor(Math.random() * 20) },
+      { severity: 'caution', score: 45 + Math.floor(Math.random() * 20) },
+      { severity: 'warning', score: 20 + Math.floor(Math.random() * 20) },
+    ];
+    const picked = results[Math.floor(Math.random() * 3)];
+    aiResult = {
+      isStool: true,
+      bristolType: 1 + Math.floor(Math.random() * 7),
+      color: ['brown', 'dark_brown', 'yellow', 'green', 'orange'][Math.floor(Math.random() * 5)],
+      consistency: ['well_formed', 'soft_mushy', 'hard_lumpy', 'watery', 'smooth_soft'][Math.floor(Math.random() * 5)],
+      healthScore: picked.score,
+      severity: picked.severity,
+      abnormalities: Math.random() < 0.35 ? [['mucus', 'blood_fresh', 'worms_visible', 'undigested_food', 'fatty_greasy'][Math.floor(Math.random() * 5)]] : [],
+      advice_ko: '', advice_en: '', advice_ja: '', detailedAnalysis: ''
+    };
+    isSimulated = true;
+  }
+
+  // AI가 "대변이 아님"으로 판정한 경우
+  if (!aiResult.isStool) {
+    overlay.classList.remove('show');
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s';
+    modal.innerHTML = `
+      <div style="background:var(--bg-card,#fff);border-radius:20px;padding:28px 24px;max-width:320px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.3)">
+        <div style="font-size:3.5rem;margin-bottom:12px">🤖</div>
+        <h3 style="font-size:1.1rem;font-weight:700;margin:0 0 10px;color:var(--text-primary)">${state.lang === 'ko' ? 'AI 판정: 대변 사진이 아닙니다' : state.lang === 'ja' ? 'AI判定：便の写真ではありません' : 'AI Detection: Not a stool photo'}</h3>
+        <p style="font-size:0.85rem;color:var(--text-secondary,#666);margin:0 0 20px;line-height:1.5">${state.lang === 'ko' ? '대변이 잘 보이는 사진을 업로드해주세요.' : state.lang === 'ja' ? '便がよく見える写真をアップロードしてください。' : 'Please upload a photo with visible stool.'}</p>
+        <button onclick="this.closest('div[style]').parentElement.remove()" style="padding:12px 28px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent-mint),var(--accent-lavender));color:#fff;font-size:0.9rem;font-weight:700;cursor:pointer">
+          ${state.lang === 'ko' ? '📸 다시 촬영하기' : state.lang === 'ja' ? '📸 撮り直す' : '📸 Try Again'}
+        </button>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+    triggerHaptic('notificationWarning');
+    return;
+  }
+
   overlay.classList.remove('show');
 
-  // Simulated analysis results (will be replaced by real AI later)
-  const results = [
-    { key: 'good', score: 75 + Math.floor(Math.random() * 20), emoji: '😊', msgKey: 'analysisGoodMsg' },
-    { key: 'caution', score: 45 + Math.floor(Math.random() * 20), emoji: '😐', msgKey: 'analysisCautionMsg' },
-    { key: 'warning', score: 20 + Math.floor(Math.random() * 20), emoji: '😟', msgKey: 'analysisWarningMsg' },
-  ];
-  const r = results[Math.floor(Math.random() * 3)];
-  const bristol = 1 + Math.floor(Math.random() * 7);
+  // AI 결과를 기존 결과 구조에 매핑
+  const r = {
+    key: aiResult.severity,
+    score: aiResult.healthScore,
+    emoji: aiResult.severity === 'good' ? '😊' : aiResult.severity === 'caution' ? '😐' : '😟',
+    msgKey: aiResult.severity === 'good' ? 'analysisGoodMsg' : aiResult.severity === 'caution' ? 'analysisCautionMsg' : 'analysisWarningMsg'
+  };
+  const bristol = aiResult.bristolType;
 
-  // Map to health DB color keys
-  const colorDBKeys = ['brown', 'dark_brown', 'yellow', 'green', 'orange', 'red', 'black', 'gray'];
-  const colorUIKeys = ['colorBrown', 'colorDarkBrown', 'colorYellowBrown', 'colorGreenBrown', 'colorLightBrown'];
-  const consKeys = ['consWellFormed', 'consSoftMushy', 'consHardLumpy', 'consWatery', 'consSmoothSoft'];
-
-  // Pick random color for now; abnormalities with weighted probability
-  const colorIdx = Math.floor(Math.random() * colorUIKeys.length);
-  const colorKey = colorUIKeys[colorIdx];
-  const consKey = consKeys[Math.floor(Math.random() * consKeys.length)];
+  // 색상/질감 매핑
+  const colorMapUI = { brown: 'colorBrown', dark_brown: 'colorDarkBrown', yellow: 'colorYellowBrown', green: 'colorGreenBrown', orange: 'colorLightBrown', red: 'colorBrown', black: 'colorDarkBrown', gray: 'colorBrown' };
+  const consMapUI = { well_formed: 'consWellFormed', soft_mushy: 'consSoftMushy', hard_lumpy: 'consHardLumpy', watery: 'consWatery', smooth_soft: 'consSmoothSoft' };
+  const colorKey = colorMapUI[aiResult.color] || 'colorBrown';
+  const consKey = consMapUI[aiResult.consistency] || 'consWellFormed';
   const typeKey = state.mode + 'Analysis';
 
-  // Detect simulated color for DB lookup
-  const detectedColorDB = ['brown', 'dark_brown', 'yellow', 'green', 'orange'][colorIdx] || 'brown';
-  const detectedAbnormalities = [];
-  // Randomly detect abnormalities to demo the feature
-  const abnormKeys = ['mucus', 'blood_fresh', 'worms_visible', 'undigested_food', 'fatty_greasy'];
-  if (Math.random() < 0.35) detectedAbnormalities.push(abnormKeys[Math.floor(Math.random() * abnormKeys.length)]);
+  const detectedColorDB = aiResult.color || 'brown';
+  const detectedAbnormalities = aiResult.abnormalities || [];
 
   // Build Bristol info from DB
   const bristolDB = db.bristolScale && db.bristolScale[String(bristol)];
@@ -4254,6 +4334,25 @@ async function runAnalysis() {
       </div>`;
   }
 
+  // AI 조언 카드 (실제 AI 분석일 때만)
+  let aiAdviceHTML = '';
+  if (!isSimulated && aiResult) {
+    const adviceText = state.lang === 'ko' ? aiResult.advice_ko : state.lang === 'ja' ? aiResult.advice_ja : aiResult.advice_en;
+    if (adviceText) {
+      aiAdviceHTML = `
+        <div style="background:linear-gradient(135deg,rgba(66,133,244,0.08),rgba(156,39,176,0.08));border:1px solid rgba(66,133,244,0.3);border-radius:12px;padding:16px;margin-bottom:16px">
+          <h4 style="margin:0 0 8px 0;font-size:1rem;color:#4285F4">🤖 ${state.lang === 'ko' ? 'AI 분석 조언' : state.lang === 'ja' ? 'AI分析アドバイス' : 'AI Analysis Advice'}</h4>
+          <p style="font-size:0.9rem;line-height:1.6;color:var(--text-primary);margin:0">${adviceText}</p>
+          ${aiResult.detailedAnalysis ? `<p style="font-size:0.8rem;color:var(--text-secondary);margin:8px 0 0 0;font-style:italic">${aiResult.detailedAnalysis}</p>` : ''}
+        </div>`;
+    }
+  }
+
+  // AI/시뮬레이션 뱃지
+  const aiBadge = isSimulated
+    ? `<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:0.7rem;font-weight:600;background:rgba(255,152,0,0.15);color:#FF9800;margin-left:8px">🎲 ${state.lang === 'ko' ? '시뮬레이션' : 'Simulated'}</span>`
+    : `<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:0.7rem;font-weight:600;background:rgba(66,133,244,0.15);color:#4285F4;margin-left:8px">🤖 ${state.lang === 'ko' ? 'AI 분석' : 'AI Analyzed'}</span>`;
+
   const photoPreview = lastAnalyzedImage ? `<div style="text-align:center;margin-bottom:14px"><img src="${lastAnalyzedImage}" style="width:120px;height:120px;object-fit:cover;border-radius:14px;border:3px solid var(--border,#e0e0e0)"></div>` : '';
 
   document.getElementById('analysisResult').innerHTML = `
@@ -4262,10 +4361,11 @@ async function runAnalysis() {
       <div class="result-header">
         <div class="result-score ${r.key}"><span>${r.score}</span><span style="font-size:0.6rem;font-weight:400">/100</span></div>
         <div class="result-details">
-          <h3>${r.emoji} ${t('gutHealth')}: ${t(r.key)}</h3>
+          <h3>${r.emoji} ${t('gutHealth')}: ${t(r.key)}${aiBadge}</h3>
           <p>${t(typeKey)} • ${t('bristol')} ${bristol}${activePet ? ` • ${activePet.name}` : ''}</p>
         </div>
       </div>
+      ${aiAdviceHTML}
       <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:16px">${diverseMsg}</p>
       ${petAdviceHTML}
       <div class="result-grid">

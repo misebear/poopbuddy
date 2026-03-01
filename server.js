@@ -1,3 +1,4 @@
+require('dotenv').config({ path: require('path').join(__dirname, 'server', '.env') });
 const express = require('express');
 const path = require('path');
 const os = require('os');
@@ -6,8 +7,10 @@ const Database = require('better-sqlite3');
 const admin = require('firebase-admin');
 
 // ── Configuration ──
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
 // ── Firebase Admin (for token verification) ──
 // If you have a service account key, uncomment and set the path:
@@ -317,6 +320,179 @@ app.delete('/api/pets/:id', authMiddleware, (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
+
+// ── AI 분석 엔드포인트 (Gemini API 프록시) ──
+app.post('/api/ai-analyze', async (req, res) => {
+    try {
+        const { image, mode, lang, petInfo } = req.body;
+        if (!image) {
+            return res.status(400).json({ error: '이미지가 필요합니다' });
+        }
+
+        // API 키 확인 — 없으면 시뮬레이션 폴백
+        if (!GEMINI_API_KEY) {
+            console.warn('[AI] GEMINI_API_KEY가 설정되지 않음, 시뮬레이션 모드');
+            return res.json({ success: true, simulated: true, result: generateSimulatedResult(mode) });
+        }
+
+        // base64 이미지에서 MIME 타입과 데이터 분리
+        const base64Match = image.match(/^data:(image\/\w+);base64,(.+)$/);
+        if (!base64Match) {
+            return res.status(400).json({ error: '잘못된 이미지 형식' });
+        }
+        const mimeType = base64Match[1];
+        const base64Data = base64Match[2];
+
+        // 모드별 분석 대상 설정
+        const subjectMap = { dog: 'dog/canine', cat: 'cat/feline', human: 'human' };
+        const subject = subjectMap[mode] || 'pet';
+
+        // 펫 정보가 있으면 프롬프트에 포함
+        let petContext = '';
+        if (petInfo) {
+            const parts = [];
+            if (petInfo.name) parts.push(`Name: ${petInfo.name}`);
+            if (petInfo.breed) parts.push(`Breed: ${petInfo.breed}`);
+            if (petInfo.weight) parts.push(`Weight: ${petInfo.weight}kg`);
+            if (petInfo.age) parts.push(`Age: ${petInfo.age}`);
+            if (parts.length > 0) {
+                petContext = `\nPet/Subject Info: ${parts.join(', ')}`;
+            }
+        }
+
+        // Gemini API 프롬프트 구성
+        const prompt = `You are a professional veterinary/medical stool analysis AI for a ${subject}.${petContext}
+
+Analyze this stool photograph carefully and return ONLY a valid JSON object (no markdown, no explanation, no code fence) with these fields:
+
+{
+  "isStool": true/false (whether the image actually shows stool/feces),
+  "bristolType": 1-7 (Bristol Stool Scale type),
+  "color": one of ["brown", "dark_brown", "yellow", "green", "orange", "red", "black", "gray"],
+  "consistency": one of ["well_formed", "soft_mushy", "hard_lumpy", "watery", "smooth_soft"],
+  "healthScore": 0-100 (overall gut health score),
+  "severity": one of ["good", "caution", "warning"],
+  "abnormalities": array of detected issues like ["mucus", "blood_fresh", "worms_visible", "undigested_food", "fatty_greasy"] or empty array,
+  "advice_ko": "한국어로 된 1-2줄 조언",
+  "advice_en": "1-2 line advice in English",
+  "advice_ja": "日本語での1-2行のアドバイス",
+  "detailedAnalysis": "Brief clinical analysis description in English"
+}
+
+Important rules:
+- If the image is NOT a stool photo, set isStool=false and healthScore=0
+- Be accurate with Bristol Scale classification
+- Consider the ${subject}'s typical stool characteristics
+- Score 80-100 = healthy, 50-79 = needs attention, 0-49 = concerning
+- Detect any abnormalities visible in the image`;
+
+        // Gemini API 호출
+        const apiUrl = `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`;
+        const requestBody = {
+            contents: [{
+                parts: [
+                    { text: prompt },
+                    {
+                        inline_data: {
+                            mime_type: mimeType,
+                            data: base64Data
+                        }
+                    }
+                ]
+            }],
+            generationConfig: {
+                temperature: 0.2,
+                maxOutputTokens: 1024,
+                responseMimeType: 'application/json'
+            }
+        };
+
+        console.log('[AI] Gemini API 호출 중...');
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            console.error('[AI] Gemini API 오류:', response.status, errText);
+            // API 오류 시 시뮬레이션 폴백
+            return res.json({ success: true, simulated: true, result: generateSimulatedResult(mode) });
+        }
+
+        const data = await response.json();
+
+        // Gemini 응답에서 텍스트 추출
+        let resultText = '';
+        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+            const parts = data.candidates[0].content.parts;
+            resultText = parts.map(p => p.text || '').join('');
+        }
+
+        // JSON 파싱 시도
+        let aiResult;
+        try {
+            // Gemini가 가끔 코드 펜스로 감싸서 응답할 수 있으므로 제거
+            const cleanText = resultText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+            aiResult = JSON.parse(cleanText);
+        } catch (parseErr) {
+            console.error('[AI] JSON 파싱 실패:', parseErr.message, '원본:', resultText);
+            return res.json({ success: true, simulated: true, result: generateSimulatedResult(mode) });
+        }
+
+        // 결과 검증 및 정규화
+        const normalizedResult = {
+            isStool: aiResult.isStool !== false,
+            bristolType: Math.max(1, Math.min(7, parseInt(aiResult.bristolType) || 4)),
+            color: ['brown', 'dark_brown', 'yellow', 'green', 'orange', 'red', 'black', 'gray'].includes(aiResult.color) ? aiResult.color : 'brown',
+            consistency: ['well_formed', 'soft_mushy', 'hard_lumpy', 'watery', 'smooth_soft'].includes(aiResult.consistency) ? aiResult.consistency : 'well_formed',
+            healthScore: Math.max(0, Math.min(100, parseInt(aiResult.healthScore) || 50)),
+            severity: ['good', 'caution', 'warning'].includes(aiResult.severity) ? aiResult.severity : 'caution',
+            abnormalities: Array.isArray(aiResult.abnormalities) ? aiResult.abnormalities : [],
+            advice_ko: aiResult.advice_ko || '분석 결과를 확인하세요.',
+            advice_en: aiResult.advice_en || 'Please review the analysis results.',
+            advice_ja: aiResult.advice_ja || '分析結果を確認してください。',
+            detailedAnalysis: aiResult.detailedAnalysis || ''
+        };
+
+        console.log('[AI] 분석 완료:', JSON.stringify({ score: normalizedResult.healthScore, bristol: normalizedResult.bristolType, severity: normalizedResult.severity }));
+        res.json({ success: true, simulated: false, result: normalizedResult });
+
+    } catch (err) {
+        console.error('[AI] 서버 오류:', err);
+        res.json({ success: true, simulated: true, result: generateSimulatedResult(req.body?.mode || 'dog') });
+    }
+});
+
+// 시뮬레이션 결과 생성 (AI 분석 실패 시 폴백)
+function generateSimulatedResult(mode) {
+    const results = [
+        { severity: 'good', score: 75 + Math.floor(Math.random() * 20) },
+        { severity: 'caution', score: 45 + Math.floor(Math.random() * 20) },
+        { severity: 'warning', score: 20 + Math.floor(Math.random() * 20) },
+    ];
+    const r = results[Math.floor(Math.random() * 3)];
+    const bristol = 1 + Math.floor(Math.random() * 7);
+    const colors = ['brown', 'dark_brown', 'yellow', 'green', 'orange'];
+    const consistencies = ['well_formed', 'soft_mushy', 'hard_lumpy', 'watery', 'smooth_soft'];
+    const abnormKeys = ['mucus', 'blood_fresh', 'worms_visible', 'undigested_food', 'fatty_greasy'];
+    const abnormalities = Math.random() < 0.35 ? [abnormKeys[Math.floor(Math.random() * abnormKeys.length)]] : [];
+
+    return {
+        isStool: true,
+        bristolType: bristol,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        consistency: consistencies[Math.floor(Math.random() * consistencies.length)],
+        healthScore: r.score,
+        severity: r.severity,
+        abnormalities,
+        advice_ko: '시뮬레이션 분석 결과입니다. 실제 AI 분석을 위해 서버 설정을 확인하세요.',
+        advice_en: 'This is a simulated result. Check server configuration for real AI analysis.',
+        advice_ja: 'シミュレーション分析結果です。実際のAI分析にはサーバー設定を確認してください。',
+        detailedAnalysis: 'Simulated analysis result'
+    };
+}
 
 // ── Static File Serving ──
 // Disable cache during development
