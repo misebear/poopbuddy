@@ -202,7 +202,7 @@ async function handleNaverCallback(authCode) {
 
       // AdMob 초기화
       await AdMob.initialize({
-        initializeForTesting: true,
+        initializeForTesting: false,
       });
       console.log('[PoopBuddy] AdMob initialized');
 
