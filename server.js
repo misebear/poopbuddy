@@ -321,6 +321,158 @@ app.delete('/api/pets/:id', authMiddleware, (req, res) => {
     }
 });
 
+// ── 공개 API 라우트 (UID 기반 간단 인증) ──
+// localStorage 1차 저장 + 서버 동기화용
+
+// 유저 등록/업데이트
+app.post('/api/sync/user', (req, res) => {
+    try {
+        const { uid, name, email, provider, photoUrl, mode, lang, theme, xp } = req.body;
+        if (!uid) return res.status(400).json({ error: 'uid 필수' });
+
+        stmts.upsertUser.run({
+            uid, name: name || 'User', email: email || '',
+            provider: provider || 'local', photoUrl: photoUrl || ''
+        });
+        if (mode || lang || theme || xp !== undefined) {
+            stmts.updateUserPrefs.run({
+                uid, mode: mode || 'dog', lang: lang || 'ko',
+                theme: theme || 'light', xp: xp || 0
+            });
+        }
+        const user = stmts.getUser.get(uid);
+        res.json({ success: true, user });
+    } catch (err) {
+        console.error('[Sync] User error:', err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// 유저 데이터 전체 조회
+app.get('/api/sync/user/:uid', (req, res) => {
+    try {
+        const user = stmts.getUser.get(req.params.uid);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        const analyses = stmts.getAnalyses.all(req.params.uid);
+        const pets = stmts.getPets.all(req.params.uid);
+        res.json({ success: true, user, analyses, pets });
+    } catch (err) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// 분석 결과 저장
+app.post('/api/sync/analysis', (req, res) => {
+    try {
+        const { uid, score, bristol, color, consistency, tag, msgKey, imageThumb, date } = req.body;
+        if (!uid) return res.status(400).json({ error: 'uid 필수' });
+
+        const result = stmts.insertAnalysis.run({
+            uid, score: score || 0, bristol: bristol || 4, color: color || 'brown',
+            consistency: consistency || '', tag: tag || '', msgKey: msgKey || '',
+            imageThumb: null, // 이미지 썸네일은 너무 크므로 서버에 저장 안 함
+            date: date || new Date().toISOString()
+        });
+        res.json({ success: true, id: result.lastInsertRowid });
+    } catch (err) {
+        console.error('[Sync] Analysis error:', err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// 분석 이력 조회
+app.get('/api/sync/analysis/:uid', (req, res) => {
+    try {
+        const analyses = stmts.getAnalyses.all(req.params.uid);
+        res.json({ success: true, analyses });
+    } catch (err) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// 피드 게시글 작성
+app.post('/api/sync/feed', (req, res) => {
+    try {
+        const { uid, userName, level, type, tag, score, bristol, color, analysis, date } = req.body;
+        if (!uid) return res.status(400).json({ error: 'uid 필수' });
+
+        const result = stmts.insertFeedPost.run({
+            uid, userName: userName || 'User', level: level || 1,
+            type: type || 'dog', tag: tag || '', score: score || 0,
+            bristol: bristol || 4, color: color || 'brown',
+            analysis: analysis || '', image: null,
+            date: date || new Date().toISOString()
+        });
+        res.json({ success: true, id: result.lastInsertRowid });
+    } catch (err) {
+        console.error('[Sync] Feed error:', err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// 피드 전체 조회 (공개)
+app.get('/api/sync/feed', (req, res) => {
+    try {
+        const posts = stmts.getFeedPosts.all();
+        res.json({ success: true, posts });
+    } catch (err) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// 피드 좋아요
+app.post('/api/sync/feed/:id/like', (req, res) => {
+    try {
+        const postId = parseInt(req.params.id);
+        const uid = req.body.uid || 'anonymous';
+        const alreadyLiked = stmts.checkLike.get(postId, uid);
+        if (alreadyLiked) return res.json({ success: false, message: 'Already liked' });
+
+        stmts.insertLike.run(postId, uid);
+        stmts.likeFeedPost.run(postId);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// 펫 추가
+app.post('/api/sync/pets', (req, res) => {
+    try {
+        const { uid, name, species, breed, birthday, weight } = req.body;
+        if (!uid || !name) return res.status(400).json({ error: 'uid, name 필수' });
+
+        const result = stmts.insertPet.run({
+            uid, name, species: species || 'dog',
+            breed: breed || '', birthday: birthday || '', weight: weight || 0
+        });
+        res.json({ success: true, id: result.lastInsertRowid });
+    } catch (err) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// 펫 목록 조회
+app.get('/api/sync/pets/:uid', (req, res) => {
+    try {
+        const pets = stmts.getPets.all(req.params.uid);
+        res.json({ success: true, pets });
+    } catch (err) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// 펫 삭제
+app.delete('/api/sync/pets/:id', (req, res) => {
+    try {
+        const uid = req.query.uid || req.body?.uid || '';
+        stmts.deletePet.run(parseInt(req.params.id), uid);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // ── AI 분석 엔드포인트 (Gemini API 프록시) ──
 app.post('/api/ai-analyze', async (req, res) => {
     try {

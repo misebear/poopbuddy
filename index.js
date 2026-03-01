@@ -263,6 +263,167 @@ const DB = {
   favFriends: JSON.parse(localStorage.getItem('pb-fav-friends') || '[]'),
 };
 
+// ── ServerSync API 클라이언트 (localStorage 1차 + 서버 동기화) ──
+const ServerSync = {
+  baseUrl: window.location.origin,
+  isOnline: true,
+  syncQueue: JSON.parse(localStorage.getItem('pb-sync-queue') || '[]'),
+
+  // 유저 UID 가져오기 (없으면 자동 생성)
+  getUid() {
+    let uid = localStorage.getItem('pb-uid');
+    if (!uid) {
+      uid = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('pb-uid', uid);
+    }
+    return uid;
+  },
+
+  // API 호출 헬퍼
+  async _fetch(path, options = {}) {
+    try {
+      const resp = await fetch(`${this.baseUrl}${path}`, {
+        headers: { 'Content-Type': 'application/json' },
+        ...options
+      });
+      this.isOnline = true;
+      if (!resp.ok) {
+        console.warn(`[Sync] API ${resp.status}:`, path);
+        return null;
+      }
+      return await resp.json();
+    } catch (err) {
+      this.isOnline = false;
+      console.warn('[Sync] 오프라인:', err.message);
+      return null;
+    }
+  },
+
+  // 큐에 추가 (오프라인 시)
+  _enqueue(action, data) {
+    this.syncQueue.push({ action, data, ts: Date.now() });
+    localStorage.setItem('pb-sync-queue', JSON.stringify(this.syncQueue));
+  },
+
+  // 큐 처리 (온라인 복귀 시)
+  async processQueue() {
+    if (this.syncQueue.length === 0) return;
+    console.log(`[Sync] 큐 처리 시작: ${this.syncQueue.length}건`);
+    const queue = [...this.syncQueue];
+    this.syncQueue = [];
+    localStorage.setItem('pb-sync-queue', '[]');
+
+    for (const item of queue) {
+      try {
+        if (item.action === 'analysis') await this.syncAnalysis(item.data, true);
+        else if (item.action === 'feed') await this.syncFeedPost(item.data, true);
+        else if (item.action === 'pet') await this.syncPet(item.data, true);
+        else if (item.action === 'user') await this.syncUser(true);
+      } catch (e) {
+        console.warn('[Sync] 큐 항목 실패:', e);
+      }
+    }
+  },
+
+  // 유저 동기화
+  async syncUser(skipQueue = false) {
+    const uid = this.getUid();
+    const data = {
+      uid, name: DB.user.name || 'User', email: DB.user.email || '',
+      provider: DB.user.provider || 'local',
+      photoUrl: DB.user.photoUrl || '',
+      mode: state.mode, lang: state.lang, theme: state.theme, xp: DB.xp
+    };
+    const result = await this._fetch('/api/sync/user', {
+      method: 'POST', body: JSON.stringify(data)
+    });
+    if (!result && !skipQueue) this._enqueue('user', data);
+    return result;
+  },
+
+  // 분석 결과 동기화
+  async syncAnalysis(record, skipQueue = false) {
+    const uid = this.getUid();
+    const data = {
+      uid, score: record.score, bristol: record.bristol,
+      color: record.color || record.colorKey, consistency: record.consKey || '',
+      tag: record.key, msgKey: record.msgKey, date: record.date
+    };
+    const result = await this._fetch('/api/sync/analysis', {
+      method: 'POST', body: JSON.stringify(data)
+    });
+    if (!result && !skipQueue) this._enqueue('analysis', record);
+    return result;
+  },
+
+  // 피드 게시글 동기화
+  async syncFeedPost(post, skipQueue = false) {
+    const uid = this.getUid();
+    const data = {
+      uid, userName: post.user, level: post.level, type: post.type,
+      tag: post.tag, score: post.score, bristol: post.bristol,
+      color: post.color, analysis: post.analysis, date: post.date
+    };
+    const result = await this._fetch('/api/sync/feed', {
+      method: 'POST', body: JSON.stringify(data)
+    });
+    if (!result && !skipQueue) this._enqueue('feed', post);
+    return result;
+  },
+
+  // 서버 피드 불러오기
+  async fetchServerFeed() {
+    const result = await this._fetch('/api/sync/feed');
+    return result?.posts || [];
+  },
+
+  // 펫 동기화
+  async syncPet(pet, skipQueue = false) {
+    const uid = this.getUid();
+    const data = {
+      uid, name: pet.name, species: pet.species,
+      breed: pet.breed, birthday: pet.birthday, weight: pet.weight
+    };
+    const result = await this._fetch('/api/sync/pets', {
+      method: 'POST', body: JSON.stringify(data)
+    });
+    if (!result && !skipQueue) this._enqueue('pet', pet);
+    return result;
+  },
+
+  // 좋아요 동기화
+  async syncLike(postId) {
+    const uid = this.getUid();
+    return await this._fetch(`/api/sync/feed/${postId}/like`, {
+      method: 'POST', body: JSON.stringify({ uid })
+    });
+  },
+
+  // 서버에서 전체 데이터 내려받기 (초기 동기화)
+  async pullAll() {
+    const uid = this.getUid();
+    const result = await this._fetch(`/api/sync/user/${uid}`);
+    if (!result || !result.success) return null;
+    return result;
+  },
+
+  // 초기화: 앱 시작 시 호출
+  async init() {
+    // 온라인 복귀 감지 시 큐 처리
+    window.addEventListener('online', () => {
+      this.isOnline = true;
+      this.processQueue();
+    });
+    window.addEventListener('offline', () => { this.isOnline = false; });
+
+    // 유저 동기화 시도
+    await this.syncUser();
+    // 큐 처리
+    await this.processQueue();
+    console.log('[Sync] 초기화 완료, UID:', this.getUid(), '온라인:', this.isOnline);
+  }
+};
+
 // ===== Login Logic (Global Scope) =====
 function showLoginModal() {
   const modal = document.getElementById('loginModal');
@@ -361,6 +522,8 @@ function saveAnalysis(result) {
   const bristolEmojis = ['⚫', '🟤', '🟫', '🟡', '🟠', '🔴', '💧'];
   const bIdx = Math.max(0, Math.min(6, (parseInt(result.bristol) || 4) - 1));
   CAL_RECORDS[`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`] = bristolEmojis[bIdx];
+  // 서버 동기화 (비동기, 실패해도 무시)
+  ServerSync.syncAnalysis(result).catch(() => { });
 }
 
 function getRecentHistory(days) {
@@ -374,6 +537,8 @@ function addPet(name, species, breed, birthday, weight, photo) {
   DB.activePet = pet.id;
   saveDB('pets'); saveDB('activePet');
   addXP(20, 'New pet');
+  // 서버 동기화 (비동기)
+  ServerSync.syncPet(pet).catch(() => { });
   return pet;
 }
 
@@ -407,6 +572,8 @@ function addFeedPost(analysisResult) {
   DB.feedPosts.unshift(post);
   saveDB('feedPosts');
   addXP(10, 'Feed post');
+  // 서버 동기화 (비동기)
+  ServerSync.syncFeedPost(post).catch(() => { });
 }
 
 function addFriend(name) {
@@ -4638,6 +4805,9 @@ setTimeout(checkDailyReminder, 5000);
 
 // ── Init ──
 document.addEventListener('DOMContentLoaded', () => {
+  // 서버 동기화 초기화
+  ServerSync.init().catch(e => console.warn('[Sync] Init failed:', e));
+
   // Theme
   if (state.theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
   document.getElementById('btnDark').textContent = state.theme === 'dark' ? '☀️' : '🌙';
