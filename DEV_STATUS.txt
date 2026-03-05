@@ -3,11 +3,11 @@
   DEV_STATUS.txt
 ==========================================
 
-📌 현재 진행 상태: ✅ 대규모 기능 업그레이드 완료
+📌 현재 진행 상태: ✅ v2.0 빌드 완료, Play Store 업로드 대기
 
 ## ✅ 완료된 작업 (2026-03-05)
 
-### 🐾 대규모 펫 케어 업그레이드
+### 🐾 v2.0 대규모 펫 케어 업그레이드
 1. DB 확장: `dailyLogs` (사료·간식·운동·물 섭취 기록)
 2. 일상 로그 CRUD: `addDailyLog`, `getDailyLogs`, `getTodayDailyLog`
 3. 일상 로그 모달 UI: `showDailyLogModal`, `saveDailyLogFromModal`
@@ -26,18 +26,27 @@
 12. PDF 내보내기 / 수의사 공유: `exportPDF`, `shareAnalysis`
 13. CSS 스타일시트: 모달, 라디오, 가이드, 리포트 스타일
 
+### 📦 빌드 상태
+- versionCode: 2, versionName: 2.0
+- AAB: android/app/build/outputs/bundle/release/app-release.aab (6.2MB)
+- 스크린샷 7종: screenshots/ 폴더
+
+### 🏪 Play Console 상태
+- 출시 노트(ko) 초안 저장 완료
+- 앱 설명 업데이트 초안 저장 완료
+- ⏳ AAB 파일 수동 업로드 필요
+- ⏳ 스크린샷 수동 교체 필요
+
 ### 기존 기능
 - SPA 아키텍처 (index.js/html/css)
 - Capacitor Android 래핑
 - localStorage 기반 오프라인 우선
 - ServerSync 서버 동기화
-- AI 배변 분석 (API 기반)
-- 커뮤니티 피드
-- 미션/뱃지/XP 시스템
+- AI 배변 분석 (Gemini API)
+- 커뮤니티 피드, 미션/뱃지/XP
 - 세계 지도 (World Poop Map)
-- 다국어 (ko/en/ja)
+- 다국어 (ko/en/ja), 다크 모드
 - AdSense 광고
-- 다크 모드
 
 ## 📁 프로젝트 구조
 ```
@@ -47,16 +56,27 @@ c:\development\PoopBuddy\
 ├── index.css           # 스타일시트 (~2984줄)
 ├── server.js           # Express 서버
 ├── server/.env         # 환경변수
+├── www/                # Capacitor 웹 에셋 (빌드용)
+├── screenshots/        # Play Store 스크린샷 7종
 ├── android/            # Capacitor Android
-├── capacitor.config.ts # Capacitor 설정
-└── DEV_STATUS.txt      # 이 파일
+│   └── app/build/outputs/bundle/release/app-release.aab
+├── capacitor.config.json
+└── DEV_STATUS.txt
 ```
 
 ## 🚀 실행 방법
 ```bash
 cd c:\development\PoopBuddy
-node server.js
-# http://localhost:3000
+node server.js          # http://localhost:3000
+
+# Android 빌드
+npx cap sync android
+cd android && .\gradlew.bat bundleRelease
 ```
 
-## ⏰ 마지막 업데이트: 2026-03-05 10:50 KST
+## 📋 다음에 할 작업
+1. Play Console에서 AAB 수동 업로드
+2. 스크린샷 7종 수동 교체
+3. 프로덕션 출시 실행
+
+## ⏰ 마지막 업데이트: 2026-03-05 12:06 KST
