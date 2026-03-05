@@ -261,6 +261,8 @@ const DB = {
   completedMissions: JSON.parse(localStorage.getItem('pb-missions-done') || '[]'),
   // Favorite friends
   favFriends: JSON.parse(localStorage.getItem('pb-fav-friends') || '[]'),
+  // 일상 로그 (사료, 간식, 운동, 물 등)
+  dailyLogs: JSON.parse(localStorage.getItem('pb-daily-logs') || '[]'),
 };
 
 // ── ServerSync API 클라이언트 (localStorage 1차 + 서버 동기화) ──
@@ -501,6 +503,7 @@ function saveDB(key) {
     history: 'pb-history', pets: 'pb-pets', xp: 'pb-xp', user: 'pb-user',
     feedPosts: 'pb-feed-posts', friends: 'pb-friends', exploredCountries: 'pb-explored',
     completedChallenges: 'pb-challenges', completedMissions: 'pb-missions-done', activePet: 'pb-active-pet',
+    dailyLogs: 'pb-daily-logs',
   };
   if (key === 'xp' || key === 'activePet') localStorage.setItem(map[key], DB[key]);
   else localStorage.setItem(map[key], JSON.stringify(DB[key]));
@@ -531,8 +534,8 @@ function getRecentHistory(days) {
   return DB.history.filter(h => new Date(h.date) >= cutoff && h.pet === state.mode);
 }
 
-function addPet(name, species, breed, birthday, weight, photo) {
-  const pet = { id: Date.now().toString(), name, species, breed, birthday, weight, photo: photo || '', created: new Date().toISOString() };
+function addPet(name, species, breed, birthday, weight, photo, foodBrand) {
+  const pet = { id: Date.now().toString(), name, species, breed, birthday, weight, photo: photo || '', foodBrand: foodBrand || '', created: new Date().toISOString() };
   DB.pets.push(pet);
   DB.activePet = pet.id;
   saveDB('pets'); saveDB('activePet');
@@ -546,6 +549,332 @@ function getActivePetName() {
   if (!DB.activePet) return typeIcon(state.mode);
   const pet = DB.pets.find(p => p.id === DB.activePet);
   return pet ? pet.name : typeIcon(state.mode);
+}
+
+// ── 일상 로그 시스템 (사료·간식·운동·물) ──
+function addDailyLog(petId, data) {
+  const log = {
+    id: Date.now().toString(),
+    petId: petId || DB.activePet,
+    date: new Date().toISOString().split('T')[0],
+    foodType: data.foodType || '', // 사료 종류
+    foodAmount: data.foodAmount || 'medium', // small/medium/large
+    snack: data.snack || 'none', // none/little/normal/much
+    exercise: data.exercise || 'none', // none/walk/run/play
+    water: data.water || 'normal', // low/normal/much
+    memo: data.memo || '',
+    created: new Date().toISOString(),
+  };
+  DB.dailyLogs.push(log);
+  saveDB('dailyLogs');
+  addXP(5, state.lang === 'ko' ? '일상 기록' : 'Daily log');
+  return log;
+}
+
+function getDailyLogs(petId, days) {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - (days || 14));
+  return DB.dailyLogs.filter(l => l.petId === (petId || DB.activePet) && new Date(l.date) >= cutoff);
+}
+
+function getTodayDailyLog(petId) {
+  const today = new Date().toISOString().split('T')[0];
+  return DB.dailyLogs.find(l => l.petId === (petId || DB.activePet) && l.date === today);
+}
+
+function getPetAge(birthday) {
+  if (!birthday) return null;
+  const birth = new Date(birthday);
+  const now = new Date();
+  const years = now.getFullYear() - birth.getFullYear();
+  const months = now.getMonth() - birth.getMonth();
+  const totalMonths = years * 12 + months;
+  if (totalMonths < 12) return { value: totalMonths, unit: 'months' };
+  return { value: years, unit: 'years' };
+}
+
+// ── AI 인사이트 엔진 (순수 로컬 연산 — API 비용 없음) ──
+function generateDietInsight(petId) {
+  const pid = petId || DB.activePet;
+  const logs = getDailyLogs(pid, 14);
+  const analyses = DB.history.filter(h => {
+    const pet = DB.pets.find(p => p.id === pid);
+    return pet && h.pet === pet.species && new Date(h.date) >= new Date(Date.now() - 14 * 86400000);
+  });
+  const insights = [];
+  const isKo = state.lang === 'ko';
+  const isJa = state.lang === 'ja';
+
+  if (logs.length < 2 || analyses.length < 2) {
+    insights.push({
+      icon: '📝',
+      text: isKo ? '일상 기록을 3일 이상 쌓으면 인사이트가 나타나요!' : isJa ? '3日以上の記録でインサイトが表示されます！' : 'Log 3+ days to see insights!',
+      type: 'info'
+    });
+    return insights;
+  }
+
+  // 사료 변경 감지
+  const foodTypes = logs.map(l => l.foodType).filter(Boolean);
+  const uniqueFoods = [...new Set(foodTypes)];
+  if (uniqueFoods.length >= 2) {
+    const recent = uniqueFoods[uniqueFoods.length - 1];
+    const previous = uniqueFoods[uniqueFoods.length - 2];
+    const recentScores = analyses.filter(a => {
+      const logOnDay = logs.find(l => l.date === new Date(a.date).toISOString().split('T')[0]);
+      return logOnDay && logOnDay.foodType === recent;
+    }).map(a => a.score);
+    const prevScores = analyses.filter(a => {
+      const logOnDay = logs.find(l => l.date === new Date(a.date).toISOString().split('T')[0]);
+      return logOnDay && logOnDay.foodType === previous;
+    }).map(a => a.score);
+    if (recentScores.length > 0 && prevScores.length > 0) {
+      const recentAvg = recentScores.reduce((a, b) => a + b, 0) / recentScores.length;
+      const prevAvg = prevScores.reduce((a, b) => a + b, 0) / prevScores.length;
+      const diff = (recentAvg - prevAvg).toFixed(1);
+      if (Math.abs(diff) >= 1) {
+        insights.push({
+          icon: diff > 0 ? '📈' : '📉',
+          text: isKo ? `사료를 '${previous}'에서 '${recent}'로 바꾼 후 평균 점수 ${diff > 0 ? '+' : ''}${diff}점` : isJa ? `フード変更後、平均スコア${diff > 0 ? '+' : ''}${diff}点` : `After switching food: avg score ${diff > 0 ? '+' : ''}${diff}`,
+          type: diff > 0 ? 'good' : 'warning'
+        });
+      }
+    }
+  }
+
+  // 간식↔점수 상관
+  const snackDays = logs.filter(l => l.snack === 'much');
+  if (snackDays.length > 0) {
+    const snackScores = [];
+    snackDays.forEach(sd => {
+      const nextDay = new Date(sd.date);
+      nextDay.setDate(nextDay.getDate() + 1);
+      const nextStr = nextDay.toISOString().split('T')[0];
+      const nextA = analyses.find(a => new Date(a.date).toISOString().split('T')[0] === nextStr);
+      if (nextA) snackScores.push(nextA.score);
+    });
+    const noSnackScores = analyses.filter(a => {
+      const d = new Date(a.date).toISOString().split('T')[0];
+      const prevD = new Date(a.date); prevD.setDate(prevD.getDate() - 1);
+      const prevStr = prevD.toISOString().split('T')[0];
+      const prevLog = logs.find(l => l.date === prevStr);
+      return !prevLog || prevLog.snack !== 'much';
+    }).map(a => a.score);
+    if (snackScores.length > 0 && noSnackScores.length > 0) {
+      const snackAvg = snackScores.reduce((a, b) => a + b, 0) / snackScores.length;
+      const noSnackAvg = noSnackScores.reduce((a, b) => a + b, 0) / noSnackScores.length;
+      const diff = (snackAvg - noSnackAvg).toFixed(1);
+      if (Math.abs(diff) >= 1.5) {
+        insights.push({
+          icon: '🍖',
+          text: isKo ? `간식 많이 먹은 다음 날 점수가 ${diff}점 ${diff < 0 ? '하락' : '상승'} 패턴` : isJa ? `おやつの翌日、スコアが${diff}点${diff < 0 ? '低下' : '上昇'}` : `Day after heavy snacks: score ${diff > 0 ? '+' : ''}${diff}`,
+          type: diff < 0 ? 'warning' : 'good'
+        });
+      }
+    }
+  }
+
+  // 운동↔점수 상관
+  const exerciseDays = logs.filter(l => l.exercise && l.exercise !== 'none');
+  const noExerciseDays = logs.filter(l => l.exercise === 'none');
+  if (exerciseDays.length > 0 && noExerciseDays.length > 0) {
+    const exScores = [];
+    exerciseDays.forEach(ed => {
+      const dayA = analyses.find(a => new Date(a.date).toISOString().split('T')[0] === ed.date);
+      if (dayA) exScores.push(dayA.score);
+    });
+    const noExScores = [];
+    noExerciseDays.forEach(ned => {
+      const dayA = analyses.find(a => new Date(a.date).toISOString().split('T')[0] === ned.date);
+      if (dayA) noExScores.push(dayA.score);
+    });
+    if (exScores.length > 0 && noExScores.length > 0) {
+      const exAvg = exScores.reduce((a, b) => a + b, 0) / exScores.length;
+      const noExAvg = noExScores.reduce((a, b) => a + b, 0) / noExScores.length;
+      const diff = (exAvg - noExAvg).toFixed(1);
+      if (diff > 0) {
+        insights.push({
+          icon: '🏃',
+          text: isKo ? `운동한 날 배변 점수 평균 +${diff}점 더 높아요!` : isJa ? `運動日のスコアは平均+${diff}点高い！` : `Exercise days: avg score +${diff} higher!`,
+          type: 'good'
+        });
+      }
+    }
+  }
+
+  // 수분 섭취 체크
+  const lowWaterDays = logs.filter(l => l.water === 'low');
+  if (lowWaterDays.length >= 2) {
+    insights.push({
+      icon: '💧',
+      text: isKo ? '수분 부족 의심, 물그릇을 더 자주 교체해 보세요' : isJa ? '水分不足の疑い。水を多めに与えてください' : 'Low water intake detected. Try changing water bowl more often',
+      type: 'warning'
+    });
+  }
+
+  // 기본 요약
+  if (insights.length === 0) {
+    const avgScore = analyses.length > 0 ? Math.round(analyses.reduce((s, a) => s + a.score, 0) / analyses.length) : 0;
+    insights.push({
+      icon: '✨',
+      text: isKo ? `최근 2주 평균 점수 ${avgScore}점. 꾸준히 기록하고 있어요!` : isJa ? `過去2週間の平均スコア${avgScore}点。継続記録中！` : `2-week avg score: ${avgScore}. Keep tracking!`,
+      type: avgScore >= 70 ? 'good' : 'info'
+    });
+  }
+
+  return insights;
+}
+
+// ── 건강 리포트 생성 (주간/월간) ──
+function generateHealthReport(period) {
+  const days = period === 'monthly' ? 30 : 7;
+  const pid = DB.activePet;
+  const pet = DB.pets.find(p => p.id === pid);
+  const species = pet ? pet.species : state.mode;
+  const analyses = DB.history.filter(h => h.pet === species && new Date(h.date) >= new Date(Date.now() - days * 86400000));
+  const prevAnalyses = DB.history.filter(h => h.pet === species && new Date(h.date) >= new Date(Date.now() - days * 2 * 86400000) && new Date(h.date) < new Date(Date.now() - days * 86400000));
+  const logs = getDailyLogs(pid, days);
+  const isKo = state.lang === 'ko';
+  const isJa = state.lang === 'ja';
+
+  const avgScore = analyses.length > 0 ? Math.round(analyses.reduce((s, a) => s + a.score, 0) / analyses.length) : 0;
+  const prevAvgScore = prevAnalyses.length > 0 ? Math.round(prevAnalyses.reduce((s, a) => s + a.score, 0) / prevAnalyses.length) : 0;
+  const scoreDiff = avgScore - prevAvgScore;
+
+  // Bristol 분포
+  const bristolDist = [0, 0, 0, 0, 0, 0, 0];
+  analyses.forEach(a => { const b = parseInt(a.bristol); if (b >= 1 && b <= 7) bristolDist[b - 1]++; });
+
+  // 색상 분포
+  const colorDist = {};
+  analyses.forEach(a => { const c = a.color || a.colorKey || 'unknown'; colorDist[c] = (colorDist[c] || 0) + 1; });
+
+  // 일별 점수 배열
+  const dailyScores = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const dayStr = d.toISOString().split('T')[0];
+    const dayAs = analyses.filter(a => new Date(a.date).toISOString().split('T')[0] === dayStr);
+    dailyScores.push(dayAs.length > 0 ? Math.round(dayAs.reduce((s, a) => s + a.score, 0) / dayAs.length) : null);
+  }
+
+  // AI 추천 문구 (로컬 룰 기반)
+  let recommendation = '';
+  if (avgScore >= 80) recommendation = isKo ? '아주 건강해요! 현재 관리를 유지하세요 🎉' : isJa ? 'とても健康！現在の管理を維持しましょう🎉' : 'Very healthy! Keep up current care 🎉';
+  else if (avgScore >= 60) recommendation = isKo ? '양호하지만 식이섬유를 좀 더 추가해 보세요' : isJa ? '良好ですが食物繊維を増やしてみて' : 'Good, but try adding more fiber';
+  else if (avgScore >= 40) recommendation = isKo ? '주의가 필요해요. 사료와 물 섭취를 점검하세요' : isJa ? '注意が必要。フードと水を確認して' : 'Attention needed. Check food and water intake';
+  else recommendation = isKo ? '수의사 상담을 권장합니다' : isJa ? '獣医への相談をお勧めします' : 'Consult a veterinarian';
+
+  // 한 줄 요약
+  const periodLabel = period === 'monthly' ? (isKo ? '이번 달' : isJa ? '今月' : 'This month') : (isKo ? '이번 주' : isJa ? '今週' : 'This week');
+  const prevLabel = period === 'monthly' ? (isKo ? '전달' : isJa ? '先月' : 'last month') : (isKo ? '전주' : isJa ? '先週' : 'last week');
+  const summary = analyses.length > 0
+    ? (isKo ? `${periodLabel} 평균 ${avgScore}점${prevAvgScore > 0 ? `, ${prevLabel} 대비 ${scoreDiff >= 0 ? '+' : ''}${scoreDiff}점` : ''}` : isJa ? `${periodLabel}平均${avgScore}点${prevAvgScore > 0 ? `、${prevLabel}比${scoreDiff >= 0 ? '+' : ''}${scoreDiff}点` : ''}` : `${periodLabel} avg ${avgScore}${prevAvgScore > 0 ? `, ${scoreDiff >= 0 ? '+' : ''}${scoreDiff} vs ${prevLabel}` : ''}`)
+    : (isKo ? '아직 기록이 부족해요' : isJa ? 'まだ記録が不足しています' : 'Not enough data yet');
+
+  return { avgScore, prevAvgScore, scoreDiff, bristolDist, colorDist, dailyScores, recommendation, summary, totalRecords: analyses.length, days, logs };
+}
+
+// ── 일상 로그 모달 ──
+function showDailyLogModal() {
+  const isKo = state.lang === 'ko';
+  const isJa = state.lang === 'ja';
+  const existing = getTodayDailyLog();
+  const pet = DB.pets.find(p => p.id === DB.activePet);
+  const foodBrand = pet ? pet.foodBrand : '';
+
+  const modal = document.createElement('div');
+  modal.id = 'dailyLogModal';
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="daily-log-modal">
+      <button onclick="document.getElementById('dailyLogModal').remove()" style="position:absolute;top:12px;right:16px;background:none;font-size:1.2rem;color:var(--text-muted);border:none;cursor:pointer">✕</button>
+      <h3 style="margin-bottom:16px;font-size:1.1rem">📋 ${isKo ? '오늘의 일상 기록' : isJa ? '今日の記録' : "Today's Daily Log"}</h3>
+      <div class="daily-log-form">
+        <div class="log-field">
+          <label>🍽️ ${isKo ? '사료 종류' : isJa ? 'フード' : 'Food Type'}</label>
+          <input id="dlFoodType" type="text" value="${existing ? existing.foodType : foodBrand}" placeholder="${isKo ? '브랜드명 입력' : isJa ? 'ブランド名' : 'Brand name'}" class="log-input">
+        </div>
+        <div class="log-field">
+          <label>📏 ${isKo ? '급여량' : isJa ? '給餌量' : 'Amount'}</label>
+          <div class="log-radio-group">
+            ${['small', 'medium', 'large'].map(v => `<button class="log-radio ${(existing ? existing.foodAmount : 'medium') === v ? 'active' : ''}" data-field="foodAmount" data-value="${v}" onclick="document.querySelectorAll('[data-field=foodAmount]').forEach(b=>b.classList.remove('active'));this.classList.add('active')">${isKo ? { small: '소량', medium: '보통', large: '많이' }[v] : isJa ? { small: '少量', medium: '普通', large: '多い' }[v] : v}</button>`).join('')}
+          </div>
+        </div>
+        <div class="log-field">
+          <label>🍖 ${isKo ? '간식' : isJa ? 'おやつ' : 'Snacks'}</label>
+          <div class="log-radio-group">
+            ${['none', 'little', 'normal', 'much'].map(v => `<button class="log-radio ${(existing ? existing.snack : 'none') === v ? 'active' : ''}" data-field="snack" data-value="${v}" onclick="document.querySelectorAll('[data-field=snack]').forEach(b=>b.classList.remove('active'));this.classList.add('active')">${isKo ? { none: '없음', little: '소량', normal: '보통', much: '많음' }[v] : isJa ? { none: 'なし', little: '少量', normal: '普通', much: '多い' }[v] : v}</button>`).join('')}
+          </div>
+        </div>
+        <div class="log-field">
+          <label>🏃 ${isKo ? '운동' : isJa ? '運動' : 'Exercise'}</label>
+          <div class="log-radio-group">
+            ${['none', 'walk', 'run', 'play'].map(v => `<button class="log-radio ${(existing ? existing.exercise : 'none') === v ? 'active' : ''}" data-field="exercise" data-value="${v}" onclick="document.querySelectorAll('[data-field=exercise]').forEach(b=>b.classList.remove('active'));this.classList.add('active')">${isKo ? { none: '없음', walk: '산책', run: '달리기', play: '놀이' }[v] : isJa ? { none: 'なし', walk: '散歩', run: 'ランニング', play: '遊び' }[v] : v}</button>`).join('')}
+          </div>
+        </div>
+        <div class="log-field">
+          <label>💧 ${isKo ? '물 섭취' : isJa ? '水分摂取' : 'Water Intake'}</label>
+          <div class="log-radio-group">
+            ${['low', 'normal', 'much'].map(v => `<button class="log-radio ${(existing ? existing.water : 'normal') === v ? 'active' : ''}" data-field="water" data-value="${v}" onclick="document.querySelectorAll('[data-field=water]').forEach(b=>b.classList.remove('active'));this.classList.add('active')">${isKo ? { low: '적음', normal: '보통', much: '많음' }[v] : isJa ? { low: '少ない', normal: '普通', much: '多い' }[v] : v}</button>`).join('')}
+          </div>
+        </div>
+        <div class="log-field">
+          <label>📝 ${isKo ? '메모' : isJa ? 'メモ' : 'Memo'}</label>
+          <input id="dlMemo" type="text" value="${existing ? existing.memo : ''}" placeholder="${isKo ? '특이사항 입력 (선택)' : isJa ? '特記事項（任意）' : 'Notes (optional)'}" class="log-input">
+        </div>
+      </div>
+      <button class="btn-primary" style="width:100%;justify-content:center;margin-top:16px" onclick="saveDailyLogFromModal()">${isKo ? '✅ 저장' : isJa ? '✅ 保存' : '✅ Save'}</button>
+    </div>`;
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function saveDailyLogFromModal() {
+  const data = {
+    foodType: document.getElementById('dlFoodType')?.value || '',
+    foodAmount: document.querySelector('[data-field="foodAmount"].active')?.dataset?.value || 'medium',
+    snack: document.querySelector('[data-field="snack"].active')?.dataset?.value || 'none',
+    exercise: document.querySelector('[data-field="exercise"].active')?.dataset?.value || 'none',
+    water: document.querySelector('[data-field="water"].active')?.dataset?.value || 'normal',
+    memo: document.getElementById('dlMemo')?.value || '',
+  };
+  // 오늘 기록이 이미 있으면 업데이트
+  const today = new Date().toISOString().split('T')[0];
+  const existIdx = DB.dailyLogs.findIndex(l => l.petId === DB.activePet && l.date === today);
+  if (existIdx >= 0) {
+    Object.assign(DB.dailyLogs[existIdx], data);
+    saveDB('dailyLogs');
+  } else {
+    addDailyLog(DB.activePet, data);
+  }
+  document.getElementById('dailyLogModal')?.remove();
+  haptic('success');
+  showToast(state.lang === 'ko' ? '일상 기록 저장 완료! 📋' : state.lang === 'ja' ? '記録を保存しました！📋' : 'Daily log saved! 📋');
+  render();
+}
+
+// ── 사진 촬영 가이드 오버레이 ──
+function showPhotoGuide() {
+  const isKo = state.lang === 'ko';
+  const isJa = state.lang === 'ja';
+  const guide = document.createElement('div');
+  guide.id = 'photoGuideOverlay';
+  guide.className = 'modal-overlay';
+  guide.innerHTML = `
+    <div class="photo-guide-card">
+      <button onclick="document.getElementById('photoGuideOverlay').remove()" style="position:absolute;top:12px;right:16px;background:none;font-size:1.2rem;color:var(--text-muted);border:none;cursor:pointer">✕</button>
+      <h3 style="margin-bottom:16px;text-align:center">📸 ${isKo ? '촬영 가이드' : isJa ? '撮影ガイド' : 'Photo Guide'}</h3>
+      <div class="guide-items">
+        <div class="guide-item"><span class="guide-icon">💡</span><div><strong>${isKo ? '조명' : isJa ? '照明' : 'Lighting'}</strong><p>${isKo ? '자연광이나 밝은 실내광 아래에서 찍어주세요' : isJa ? '自然光か明るい室内光で撮影してください' : 'Use natural or bright indoor light'}</p></div></div>
+        <div class="guide-item"><span class="guide-icon">📐</span><div><strong>${isKo ? '각도' : isJa ? '角度' : 'Angle'}</strong><p>${isKo ? '위에서 아래로 30~45도 각도가 가장 정확해요' : isJa ? '上から30〜45度の角度が最適です' : 'Top-down 30-45° angle works best'}</p></div></div>
+        <div class="guide-item"><span class="guide-icon">📏</span><div><strong>${isKo ? '거리' : isJa ? '距離' : 'Distance'}</strong><p>${isKo ? '30~40cm 거리에서 대상이 화면의 60%를 차지하도록' : isJa ? '30〜40cmの距離で、画面の60%を占めるように' : 'About 30-40cm away, fill 60% of frame'}</p></div></div>
+        <div class="guide-item"><span class="guide-icon">🎯</span><div><strong>${isKo ? '초점' : isJa ? 'ピント' : 'Focus'}</strong><p>${isKo ? '흔들리지 않게 잠깐 멈춘 후 촬영해주세요' : isJa ? 'ブレないように少し静止してから撮影してください' : 'Hold still for a moment before snapping'}</p></div></div>
+      </div>
+      <button class="btn-primary" style="width:100%;justify-content:center;margin-top:16px" onclick="document.getElementById('photoGuideOverlay').remove()">${isKo ? '확인' : isJa ? 'OK' : 'Got it'}</button>
+    </div>`;
+  guide.addEventListener('click', e => { if (e.target === guide) guide.remove(); });
+  document.body.appendChild(guide);
 }
 
 function addFeedPost(analysisResult) {
@@ -1564,6 +1893,31 @@ function renderLanding() {
     })()}
     </div>
     <div class="ad-infeed" style="margin-top:24px">${t('adSlot')}</div>
+    <!-- 일상 기록 + AI 인사이트 -->
+    ${DB.activePet ? (() => {
+      const todayLog = getTodayDailyLog();
+      const insights = generateDietInsight();
+      const _isKo = state.lang === 'ko';
+      const _isJa = state.lang === 'ja';
+      return `
+    <div style="margin-top:16px">
+      <button onclick="showDailyLogModal()" style="width:100%;display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:16px;border:1.5px dashed ${todayLog ? 'var(--accent-mint)' : 'var(--border-soft, #ddd)'};background:${todayLog ? 'rgba(126,207,139,0.06)' : 'var(--bg-card)'};cursor:pointer;font-family:var(--font);color:var(--text-primary);transition:all 0.2s">
+        <span style="font-size:1.5rem">${todayLog ? '✅' : '📋'}</span>
+        <div style="flex:1;text-align:left">
+          <div style="font-weight:700;font-size:0.9rem">${_isKo ? '오늘의 일상 기록' : _isJa ? '今日の記録' : "Today's Daily Log"}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted)">${todayLog ? (_isKo ? '기록 완료 · 탭하여 수정' : _isJa ? '記録済み · タップで修正' : 'Logged · tap to edit') : (_isKo ? '사료·간식·운동·물 섭취 기록하기' : _isJa ? 'フード・おやつ・運動・水分を記録' : 'Log food, snacks, exercise, water')}</div>
+        </div>
+        <span style="font-size:1.1rem;color:var(--text-muted)">›</span>
+      </button>
+    </div>
+    ${insights.length > 0 ? `<div style="margin-top:12px;padding:16px;border-radius:16px;background:linear-gradient(135deg,rgba(126,207,139,0.08),rgba(155,135,245,0.06));border:1px solid rgba(126,207,139,0.15)">
+      <div style="font-weight:700;font-size:0.9rem;margin-bottom:10px">${_isKo ? '🧠 AI 인사이트' : _isJa ? '🧠 AIインサイト' : '🧠 AI Insights'}</div>
+      ${insights.map(ins => `<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px">
+        <span style="font-size:1.1rem;flex-shrink:0">${ins.icon}</span>
+        <span style="font-size:0.8rem;color:${ins.type === 'good' ? 'var(--accent-mint)' : ins.type === 'warning' ? '#E8836B' : 'var(--text-secondary)'};line-height:1.4">${ins.text}</span>
+      </div>`).join('')}
+    </div>` : ''}`;
+    })() : ''}
   </div>`;
 }
 
@@ -1579,6 +1933,9 @@ function renderAnalyze() {
     const labels = { dog: '🐕 ' + (state.lang === 'ko' ? '강아지' : 'Dog'), cat: '🐱 ' + (state.lang === 'ko' ? '고양이' : 'Cat'), human: '👤 ' + (state.lang === 'ko' ? '사람' : 'Human') };
     return `<button onclick="state.mode='${m}';render()" style="flex:1;max-width:110px;padding:10px 8px;border-radius:12px;font-size:0.82rem;font-weight:${isA ? '700' : '500'};border:2px solid ${isA ? mc.border : 'transparent'};background:${isA ? mc.bg : 'var(--bg-secondary,#f5f5f5)'};color:${isA ? mc.text : 'var(--text-secondary)'};cursor:pointer;transition:all 0.2s">${labels[m]}</button>`;
   }).join('')}
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+      <button onclick="showPhotoGuide()" style="background:none;border:1px solid var(--border-soft,#ddd);border-radius:20px;padding:5px 12px;font-size:0.75rem;color:var(--text-secondary);cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:4px">📸 ${state.lang === 'ko' ? '촬영 가이드' : state.lang === 'ja' ? '撮影ガイド' : 'Photo Guide'}</button>
     </div>
     <div class="upload-zone" id="uploadZone" onclick="showPhotoPickerPopup()" style="min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--accent-mint,#5BB89A);border-radius:16px;padding:30px 20px;cursor:pointer;background:var(--bg-secondary,#f9fafb)">
       <input type="file" accept="image/*" multiple class="upload-input" id="fileInput" onchange="handleFileSelect(event)" style="display:none">
@@ -1918,14 +2275,68 @@ function renderCalendar() {
 
   const activeTab = state.calTab || 'calendar';
 
-  return `<div class="page"><div class="calendar-container">
-    <h1 class="section-title">${activeTab === 'calendar' ? t('calTitle') : t('pottyLogTitle')}</h1>
-    <!-- Tab Switcher -->
-    <div style="display:flex;gap:8px;margin-bottom:20px">
-      <button class="${activeTab === 'calendar' ? 'btn-primary' : 'btn-secondary'}" onclick="state.calTab='calendar';render()" style="flex:1;font-size:0.85rem;padding:10px;justify-content:center">${t('pottyCalTab')}</button>
-      <button class="${activeTab === 'pottylog' ? 'btn-primary' : 'btn-secondary'}" onclick="state.calTab='pottylog';render()" style="flex:1;font-size:0.85rem;padding:10px;justify-content:center">${t('pottyLogTab')}</button>
+  // ── 리포트 탭 콘텐츠 ──
+  const reportPeriod = state.reportPeriod || 'weekly';
+  const report = generateHealthReport(reportPeriod);
+  const _isKo = state.lang === 'ko';
+  const _isJa = state.lang === 'ja';
+  const reportContent = `
+    <div class="report-tabs">
+      <button class="report-tab ${reportPeriod === 'weekly' ? 'active' : ''}" onclick="state.reportPeriod='weekly';render()">${_isKo ? '주간' : _isJa ? '週間' : 'Weekly'}</button>
+      <button class="report-tab ${reportPeriod === 'monthly' ? 'active' : ''}" onclick="state.reportPeriod='monthly';render()">${_isKo ? '월간' : _isJa ? '月間' : 'Monthly'}</button>
     </div>
-    ${activeTab === 'calendar' ? calendarContent : pottyLogContent}
+    <div class="report-summary-card">
+      <div class="report-score" style="color:${report.avgScore >= 70 ? 'var(--accent-mint)' : report.avgScore >= 40 ? 'var(--accent-peach)' : 'var(--accent-coral)'}">${report.avgScore || '—'}</div>
+      <div style="font-size:0.8rem;color:var(--text-muted)">${_isKo ? '평균 건강 점수' : _isJa ? '平均健康スコア' : 'Avg Health Score'}</div>
+      ${report.prevAvgScore > 0 ? `<div class="report-diff" style="color:${report.scoreDiff >= 0 ? 'var(--accent-mint)' : 'var(--accent-coral)'}">${report.scoreDiff >= 0 ? '▲' : '▼'} ${Math.abs(report.scoreDiff)}${_isKo ? '점' : _isJa ? '点' : 'pts'}</div>` : ''}
+      <div style="font-size:0.85rem;color:var(--text-secondary);margin-top:4px">${report.summary}</div>
+    </div>
+    <!-- 추세 그래프 -->
+    <div class="card" style="padding:16px;margin-bottom:12px">
+      <h3 style="font-size:0.9rem;margin-bottom:12px">📈 ${_isKo ? '추세 그래프' : _isJa ? 'トレンドグラフ' : 'Trend Graph'}</h3>
+      <canvas id="reportTrendCanvas" width="700" height="180" style="width:100%;height:180px"></canvas>
+    </div>
+    <!-- Bristol 분포 -->
+    <div class="card" style="padding:16px;margin-bottom:12px">
+      <h3 style="font-size:0.9rem;margin-bottom:12px">💩 Bristol ${_isKo ? '분포' : _isJa ? '分布' : 'Distribution'}</h3>
+      <div style="display:flex;gap:4px;align-items:flex-end;height:80px">
+        ${report.bristolDist.map((v, i) => {
+    const maxH = Math.max(...report.bristolDist, 1);
+    const h = Math.max(v / maxH * 70, 2);
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+            <span style="font-size:0.7rem;color:var(--text-muted)">${v}</span>
+            <div style="width:100%;height:${h}px;background:linear-gradient(180deg,var(--accent-mint),#5BB89A);border-radius:4px 4px 0 0;transition:height 0.3s"></div>
+            <span style="font-size:0.65rem;color:var(--text-muted)">T${i + 1}</span>
+          </div>`;
+  }).join('')}
+      </div>
+    </div>
+    <!-- AI 추천 -->
+    <div class="card" style="padding:16px;margin-bottom:12px">
+      <h3 style="font-size:0.9rem;margin-bottom:8px">🤖 ${_isKo ? 'AI 추천' : _isJa ? 'AI推薦' : 'AI Recommendation'}</h3>
+      <div class="report-recommendation">${report.recommendation}</div>
+    </div>
+    <!-- 수의사 공유 -->
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn-primary" style="flex:1;font-size:0.85rem;padding:12px;justify-content:center" onclick="exportPDF()">📄 ${_isKo ? 'PDF 내보내기' : _isJa ? 'PDFエクスポート' : 'Export PDF'}</button>
+      <button class="btn-secondary" style="flex:1;font-size:0.85rem;padding:12px;justify-content:center" onclick="shareAnalysis()">↗️ ${_isKo ? '수의사에게 공유' : _isJa ? '獣医に共有' : 'Share with Vet'}</button>
+    </div>`;
+
+  const tabTitles = {
+    calendar: t('calTitle'),
+    pottylog: t('pottyLogTitle'),
+    report: (_isKo ? '📊 건강 리포트' : _isJa ? '📊 健康レポート' : '📊 Health Report')
+  };
+
+  return `<div class="page"><div class="calendar-container">
+    <h1 class="section-title">${tabTitles[activeTab] || t('calTitle')}</h1>
+    <!-- Tab Switcher (3탭) -->
+    <div style="display:flex;gap:4px;margin-bottom:20px;background:var(--bg-secondary,#f5f5f5);border-radius:12px;padding:3px">
+      <button class="report-tab ${activeTab === 'calendar' ? 'active' : ''}" onclick="state.calTab='calendar';render()">${t('pottyCalTab')}</button>
+      <button class="report-tab ${activeTab === 'pottylog' ? 'active' : ''}" onclick="state.calTab='pottylog';render()">${t('pottyLogTab')}</button>
+      <button class="report-tab ${activeTab === 'report' ? 'active' : ''}" onclick="state.calTab='report';render()">${_isKo ? '리포트' : _isJa ? 'レポート' : 'Report'}</button>
+    </div>
+    ${activeTab === 'calendar' ? calendarContent : activeTab === 'report' ? reportContent : pottyLogContent}
   </div></div>`;
 }
 
@@ -3288,13 +3699,15 @@ function showAddPetModal() {
       </select>
       <input id="petBreed" placeholder="${isKo ? '품종' : 'Breed'}" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px;font-family:var(--font);background:var(--bg-secondary);color:var(--text-primary);box-sizing:border-box">
       <input id="petBirthday" type="date" placeholder="${isKo ? '생일' : 'Birthday'}" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px;font-family:var(--font);background:var(--bg-secondary);color:var(--text-primary);box-sizing:border-box">
-      <input id="petWeight" type="number" placeholder="${isKo ? '몸무게 (kg)' : 'Weight (kg)'}" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;margin-bottom:16px;font-family:var(--font);background:var(--bg-secondary);color:var(--text-primary);box-sizing:border-box">
+      <input id="petWeight" type="number" placeholder="${isKo ? '몸무게 (kg)' : 'Weight (kg)'}" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px;font-family:var(--font);background:var(--bg-secondary);color:var(--text-primary);box-sizing:border-box">
+      <input id="petFoodBrand" placeholder="${isKo ? '현재 사료 브랜드 (선택)' : 'Current food brand (optional)'}" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;margin-bottom:16px;font-family:var(--font);background:var(--bg-secondary);color:var(--text-primary);box-sizing:border-box">
       <button class="btn-primary" style="width:100%;justify-content:center" onclick="
         const name=document.getElementById('petName').value;
         if(!name){alert('${isKo ? '이름을 입력하세요' : 'Enter a name'}');return;}
         const photoEl=document.getElementById('petPhotoPreview');
         const photo=photoEl.dataset.photo||'';
-        addPet(name,document.getElementById('petSpecies').value,document.getElementById('petBreed').value,document.getElementById('petBirthday').value,document.getElementById('petWeight').value,photo);
+        const foodBrand=document.getElementById('petFoodBrand').value||'';
+        addPet(name,document.getElementById('petSpecies').value,document.getElementById('petBreed').value,document.getElementById('petBirthday').value,document.getElementById('petWeight').value,photo,foodBrand);
         haptic('success');
         document.getElementById('addPetModal').remove();
         render();
@@ -4613,6 +5026,111 @@ function toggleRecord(y, m, d) {
 }
 
 
+// ── 리포트 추세 그래프 캔버스 ──
+function drawReportTrend() {
+  const canvas = document.getElementById('reportTrendCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const report = generateHealthReport(state.reportPeriod || 'weekly');
+  const scores = report.dailyScores;
+  const W = canvas.width, H = canvas.height;
+  const pad = 30;
+  ctx.clearRect(0, 0, W, H);
+  // 가이드 라인
+  ctx.strokeStyle = 'rgba(150,150,150,0.15)';
+  ctx.lineWidth = 1;
+  [0, 25, 50, 75, 100].forEach(v => {
+    const y = H - pad - (v / 100) * (H - pad * 2);
+    ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(W - pad, y); ctx.stroke();
+    ctx.fillStyle = 'rgba(150,150,150,0.4)';
+    ctx.font = '18px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(v, pad - 6, y + 5);
+  });
+  // 데이터 포인트
+  const validScores = scores.filter(s => s !== null);
+  if (validScores.length < 2) {
+    ctx.fillStyle = 'rgba(150,150,150,0.5)';
+    ctx.textAlign = 'center';
+    ctx.font = '24px sans-serif';
+    ctx.fillText(state.lang === 'ko' ? '데이터 부족' : 'Not enough data', W / 2, H / 2);
+    return;
+  }
+  const stepX = (W - pad * 2) / (scores.length - 1);
+  // 영역 채우기
+  ctx.beginPath();
+  let started = false;
+  scores.forEach((s, i) => {
+    if (s === null) return;
+    const x = pad + i * stepX;
+    const y = H - pad - (s / 100) * (H - pad * 2);
+    if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+  });
+  // 닫기
+  const lastIdx = scores.length - 1 - scores.slice().reverse().findIndex(s => s !== null);
+  const firstIdx = scores.findIndex(s => s !== null);
+  ctx.lineTo(pad + lastIdx * stepX, H - pad);
+  ctx.lineTo(pad + firstIdx * stepX, H - pad);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, 'rgba(91,184,154,0.3)');
+  grad.addColorStop(1, 'rgba(91,184,154,0.02)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+  // 선
+  ctx.beginPath();
+  started = false;
+  scores.forEach((s, i) => {
+    if (s === null) return;
+    const x = pad + i * stepX;
+    const y = H - pad - (s / 100) * (H - pad * 2);
+    if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = '#5BB89A';
+  ctx.lineWidth = 3;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+  // 점
+  scores.forEach((s, i) => {
+    if (s === null) return;
+    const x = pad + i * stepX;
+    const y = H - pad - (s / 100) * (H - pad * 2);
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = s >= 70 ? '#5BB89A' : s >= 40 ? '#D4A853' : '#E8836B';
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+}
+
+// ── 리포트 공유/내보내기 스텁 ──
+function exportPDF() {
+  const report = generateHealthReport(state.reportPeriod || 'weekly');
+  const text = `PoopBuddy Health Report\n${report.summary}\nAvg Score: ${report.avgScore}\n${report.recommendation}`;
+  if (navigator.share) {
+    navigator.share({ title: 'PoopBuddy Health Report', text }).catch(() => { });
+  } else {
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'poopbuddy_report.txt'; a.click();
+    URL.revokeObjectURL(url);
+  }
+  showToast(state.lang === 'ko' ? '리포트 내보내기 완료!' : 'Report exported!');
+}
+
+function shareAnalysis() {
+  const report = generateHealthReport(state.reportPeriod || 'weekly');
+  const text = `🐾 PoopBuddy Report\n📊 Avg: ${report.avgScore}/100\n${report.recommendation}`;
+  if (navigator.share) {
+    navigator.share({ title: 'PoopBuddy', text }).catch(() => { });
+  } else {
+    navigator.clipboard?.writeText(text);
+    showToast(state.lang === 'ko' ? '클립보드에 복사됨!' : 'Copied to clipboard!');
+  }
+}
+
 function render() {
   document.getElementById('app').innerHTML = (pages[state.page] || renderLanding)();
   // Update nav text for current language
@@ -4650,6 +5168,8 @@ function render() {
   if (state.page === 'game') initFlappyPoop();
   // Init stats charts if on stats page
   if (state.page === 'stats') setTimeout(initStatsCharts, 50);
+  // 리포트 추세 캔버스 그리기
+  if (state.page === 'calendar' && state.calTab === 'report') setTimeout(drawReportTrend, 50);
 }
 
 // ── Flappy Poop Game ──
