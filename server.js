@@ -512,8 +512,17 @@ app.post('/api/ai-analyze', async (req, res) => {
             }
         }
 
+        // 사용자 피드백 데이터가 있으면 프롬프트에 반영
+        let feedbackContext = '';
+        if (req.body.feedbackHistory && req.body.feedbackHistory.length > 0) {
+            const recentFeedback = req.body.feedbackHistory.slice(-5);
+            feedbackContext = `\n\nUser correction history (use to improve accuracy):
+${recentFeedback.map(f => `- User said: score was ${f.correctedSeverity}, actual bristol was ${f.correctedBristol || 'unknown'}`).join('\n')}
+Consider these corrections when analyzing similar stool.`;
+        }
+
         // Gemini API 프롬프트 구성
-        const prompt = `You are a professional veterinary/medical stool analysis AI for a ${subject}.${petContext}
+        const prompt = `You are a professional veterinary/medical stool analysis AI for a ${subject}.${petContext}${feedbackContext}
 
 Analyze this stool photograph carefully and return ONLY a valid JSON object (no markdown, no explanation, no code fence) with these fields:
 
@@ -524,7 +533,9 @@ Analyze this stool photograph carefully and return ONLY a valid JSON object (no 
   "consistency": one of ["well_formed", "soft_mushy", "hard_lumpy", "watery", "smooth_soft"],
   "healthScore": 0-100 (overall gut health score),
   "severity": one of ["good", "caution", "warning"],
-  "abnormalities": array of detected issues like ["mucus", "blood_fresh", "worms_visible", "undigested_food", "fatty_greasy"] or empty array,
+  "abnormalities": array of detected issues like ["mucus", "blood_fresh", "worms_visible", "undigested_food", "fatty_greasy", "white_spots", "rice_grain_particles", "thread_like_objects"] or empty array,
+  "parasiteRisk": one of ["none", "low", "moderate", "high"] (risk of parasite infection based on visual cues),
+  "parasiteDetails": "Description of any parasite-related visual findings (white specks, moving segments, rice-like particles, thread-like worms). Empty string if none.",
   "advice_ko": "한국어로 된 1-2줄 조언",
   "advice_en": "1-2 line advice in English",
   "advice_ja": "日本語での1-2行のアドバイス",
@@ -536,7 +547,8 @@ Important rules:
 - Be accurate with Bristol Scale classification
 - Consider the ${subject}'s typical stool characteristics
 - Score 80-100 = healthy, 50-79 = needs attention, 0-49 = concerning
-- Detect any abnormalities visible in the image`;
+- Detect any abnormalities visible in the image
+- PARASITE CHECK: Look carefully for white specks, rice-grain-like segments (tapeworm), thin thread-like objects (roundworm), or tiny moving dots. If ANY suspicious parasite indicators are found, set parasiteRisk accordingly and describe in parasiteDetails.`;
 
         // Gemini API 호출
         const apiUrl = `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`;
@@ -602,6 +614,8 @@ Important rules:
             healthScore: Math.max(0, Math.min(100, parseInt(aiResult.healthScore) || 50)),
             severity: ['good', 'caution', 'warning'].includes(aiResult.severity) ? aiResult.severity : 'caution',
             abnormalities: Array.isArray(aiResult.abnormalities) ? aiResult.abnormalities : [],
+            parasiteRisk: ['none', 'low', 'moderate', 'high'].includes(aiResult.parasiteRisk) ? aiResult.parasiteRisk : 'none',
+            parasiteDetails: aiResult.parasiteDetails || '',
             advice_ko: aiResult.advice_ko || '분석 결과를 확인하세요.',
             advice_en: aiResult.advice_en || 'Please review the analysis results.',
             advice_ja: aiResult.advice_ja || '分析結果を確認してください。',
