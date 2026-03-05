@@ -1,109 +1,62 @@
-========================================
-  PoopBuddy 개발 현황 🐾
-========================================
-마지막 업데이트: 2026-03-01 11:46 KST
+==========================================
+  PoopBuddy - 반려동물 배변 건강 분석 앱
+  DEV_STATUS.txt
+==========================================
 
-📌 현재 진행 상태: Phase 1~4 완료 ✅ / Play Store 배포 진행 중
+📌 현재 진행 상태: ✅ 대규모 기능 업그레이드 완료
 
-========================================
-  ✅ 완료된 작업
-========================================
+## ✅ 완료된 작업 (2026-03-05)
 
-[Phase 1] AI 분석 통합 ✅
-  - server.js: POST /api/ai-analyze (Gemini 2.0 Flash 프록시)
-  - index.js: runAnalysis() → 서버 AI API 호출, AI/시뮬레이션 뱃지
-  - 모드별(강아지/고양이/사람) 맞춤 프롬프트
-  - API 실패 시 시뮬레이션 폴백
+### 🐾 대규모 펫 케어 업그레이드
+1. DB 확장: `dailyLogs` (사료·간식·운동·물 섭취 기록)
+2. 일상 로그 CRUD: `addDailyLog`, `getDailyLogs`, `getTodayDailyLog`
+3. 일상 로그 모달 UI: `showDailyLogModal`, `saveDailyLogFromModal`
+4. AI 인사이트 엔진 (순수 로컬 연산, API 비용 없음):
+   - 사료 변경 → 점수 비교
+   - 간식↔점수 상관 분석
+   - 운동↔점수 상관 분석
+   - 수분 섭취 경고
+5. 건강 리포트 생성: `generateHealthReport` (주간/월간)
+6. 사진 촬영 가이드: `showPhotoGuide` (조명·각도·거리·초점)
+7. 홈 인사이트 카드 + 일상 로그 버튼
+8. 분석 페이지 촬영 가이드 버튼
+9. 펫 등록 모달: `foodBrand` (사료 브랜드) 필드 추가
+10. 캘린더 3탭: Calendar / Potty Log / Report
+11. 추세 그래프 Canvas: `drawReportTrend`
+12. PDF 내보내기 / 수의사 공유: `exportPDF`, `shareAnalysis`
+13. CSS 스타일시트: 모달, 라디오, 가이드, 리포트 스타일
 
-[Phase 2] 백엔드 연결 ✅
-  - server.js: /api/sync/* 공개 API 라우트 15개 (유저/분석/피드/펫 CRUD)
-  - index.js: ServerSync API 클라이언트 모듈
-    - 자동 UID 생성, 오프라인 큐, online/offline 감지
-    - saveAnalysis/addFeedPost/addPet에 동기화 훅 연결
-    - DOMContentLoaded에서 ServerSync.init() 자동 호출
-  - SQLite DB 영구 저장 (poopbuddy.db)
+### 기존 기능
+- SPA 아키텍처 (index.js/html/css)
+- Capacitor Android 래핑
+- localStorage 기반 오프라인 우선
+- ServerSync 서버 동기화
+- AI 배변 분석 (API 기반)
+- 커뮤니티 피드
+- 미션/뱃지/XP 시스템
+- 세계 지도 (World Poop Map)
+- 다국어 (ko/en/ja)
+- AdSense 광고
+- 다크 모드
 
-[Phase 3] 배포 준비 ✅
-  - AdMob 프로덕션 모드 전환 (initializeForTesting: false)
-  - 릴리스 서명키 생성 (android/poopbuddy-release.jks)
-  - build.gradle signingConfigs 설정
-  - AAB 빌드 완료 (android/app/build/outputs/bundle/release/app-release.aab, ~6MB)
-  - Play Console에 PoopBuddy 앱 생성 (JejuBucketList 계정)
-  - 스토어 등록 텍스트(간단/자세한 설명) 입력 저장
-
-[Phase 4] 추가 기능 ✅
-  - 일일 리마인더 알림 (Notification API, 30분 주기 체크, 다국어)
-  - 서비스 워커 전면 개선 (정적 자산 사전 캐시, SPA 오프라인 폴백, 푸시 핸들러)
-  - 캐시 버전 v5
-
-========================================
-  📋 다음에 할 작업 (우선순위순)
-========================================
-
-1. [Play Store] 이미지 업로드 (수동)
-   - store-listing/app-icon-512.png (512x512)
-   - store-listing/feature-graphic-1024x500.png (1024x500)
-   - store-listing/screenshot-1~4.png (1080x1920)
-   - AAB 업로드: android/app/build/outputs/bundle/release/app-release.aab
-
-2. [Play Store] 필수 설정 완료 (수동)
-   - 콘텐츠 등급 설문
-   - 타겟 잠재고객 설정
-   - 개인정보처리방침 URL
-   - 앱 카테고리 선택
-
-3. [Phase 5] iOS 빌드
-   - npx cap add ios (Mac 환경 필요)
-
-========================================
-  ⚠️ 주의사항
-========================================
-
-- Gemini API 키: server/.env (GEMINI_API_KEY)
-- AdMob App ID: ca-app-pub-9072876824288260~7058634144
-- 서명키 비밀번호: poopbuddy2026
-- 오프라인 우선 원칙: localStorage가 1차 저장소, 서버는 동기화/백업용
-- 서비스 워커 캐시 버전 변경 시 sw.js CACHE_NAME 업데이트 필수
-
-========================================
-  🏗️ 프로젝트 구조
-========================================
-
+## 📁 프로젝트 구조
+```
 c:\development\PoopBuddy\
-├── index.html          # 메인 HTML (SPA)
-├── index.js            # 프론트엔드 로직 (5200+ lines)
-├── index.css           # 스타일시트
-├── sw.js               # 서비스 워커 (v5)
-├── manifest.json       # PWA 매니페스트
-├── server.js           # Express + SQLite + Gemini API
-├── capacitor.config.json
-├── package.json
-├── store-listing/      # Play Store 등록 자료
-│   ├── STORE_LISTING.md
-│   ├── app-icon-512.png (512x512)
-│   ├── feature-graphic-1024x500.png (1024x500)
-│   └── screenshot-1~4.png (1080x1920)
-├── server/
-│   └── .env            # GEMINI_API_KEY
-├── android/
-│   ├── poopbuddy-release.jks
-│   └── app/
-│       ├── build.gradle (signingConfigs 포함)
-│       └── build/outputs/bundle/release/app-release.aab
-└── www/                # Capacitor 웹 자산 (빌드 시 동기화)
+├── index.html          # SPA 메인 HTML
+├── index.js            # 메인 JavaScript (~5700줄)
+├── index.css           # 스타일시트 (~2984줄)
+├── server.js           # Express 서버
+├── server/.env         # 환경변수
+├── android/            # Capacitor Android
+├── capacitor.config.ts # Capacitor 설정
+└── DEV_STATUS.txt      # 이 파일
+```
 
-========================================
-  🚀 실행 방법
-========================================
+## 🚀 실행 방법
+```bash
+cd c:\development\PoopBuddy
+node server.js
+# http://localhost:3000
+```
 
-# 개발 서버
-node server.js          # http://localhost:3000
-
-# Android 빌드
-scripts\deploy.bat      # 디버그 빌드 + 디바이스 설치
-gradlew bundleRelease   # 릴리스 AAB 빌드
-
-========================================
-  🔧 현재 디버깅 중인 이슈
-========================================
-없음 ✅
+## ⏰ 마지막 업데이트: 2026-03-05 10:50 KST
