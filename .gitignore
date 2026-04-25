@@ -20,3 +20,8 @@ Thumbs.db
 # Debug
 *.log
 npm-debug.log*
+
+# Local AI handoff exports
+**/ChatGPT_Codex_Master_Context.txt
+**/_AI_HANDOVER.md
+**/export_to_claude.ps1
