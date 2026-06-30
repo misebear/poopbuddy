@@ -1,0 +1,17 @@
+{
+  "generatedAt": "2026-06-29T07:58:21",
+  "packageName": "com.poopbuddy.app",
+  "versionCode": 6,
+  "version": "2.4",
+  "locales": [
+    "ko-KR",
+    "en-US",
+    "ja-JP"
+  ],
+  "featureGraphics": [
+    "store-listing/locales/ko-KR/feature-graphic-1024x500.png",
+    "store-listing/locales/en-US/feature-graphic-1024x500.png",
+    "store-listing/locales/ja-JP/feature-graphic-1024x500.png"
+  ],
+  "phoneScreenshotsPerLocale": 8
+}

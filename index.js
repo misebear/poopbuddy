@@ -238,6 +238,18 @@ const state = {
   feedFilter: 'all',
 };
 
+try {
+  const launchParams = new URLSearchParams(window.location.search);
+  const launchPage = launchParams.get('page');
+  const launchLang = launchParams.get('lang');
+  const launchMode = launchParams.get('mode');
+  if (['landing', 'analyze', 'feed', 'calendar', 'worldmap', 'stats', 'more'].includes(launchPage)) state.page = launchPage;
+  if (['en', 'ko', 'ja'].includes(launchLang)) state.lang = launchLang;
+  if (['dog', 'cat'].includes(launchMode)) state.mode = launchMode;
+} catch (e) {
+  console.warn('[PoopBuddy] launch params ignored:', e);
+}
+
 // ── Core Data Layer (localStorage persistence) ──
 const DB = {
   // Analysis history
@@ -527,6 +539,7 @@ function saveAnalysis(result) {
   CAL_RECORDS[`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`] = bristolEmojis[bIdx];
   // 서버 동기화 (비동기, 실패해도 무시)
   ServerSync.syncAnalysis(result).catch(() => { });
+  scheduleWidgetSync();
 }
 
 function getRecentHistory(days) {
@@ -964,10 +977,10 @@ const T = {
     home: 'Home', analyze: 'Analyze', feed: 'Feed', calendar: 'Calendar', missions: 'Missions',
     halloffame: 'Hall of Fame', worldmap: 'World Map', login: 'Login', more: 'More',
     // Hero
-    heroTitle1: "Your Pet's Health", heroTitle2: 'Told by Poop', heroTitle3: '🐾',
-    heroLabel: '✨ Smart Analysis',
+    heroTitle1: "Your Pet's Health", heroTitle2: 'Made Clear', heroTitle3: '',
+    heroLabel: 'AI Health Check',
     heroSub: 'One photo. Instant insights. Track & compare.',
-    startBtn: '📸 Analyze', learnBtn: '📋 Feed',
+    startBtn: 'Analyze', learnBtn: 'Records',
     // Stats
     statUsers: '20,000+', statUsersL: 'Users', statAnalyses: '85,000+', statAnalysesL: 'Analyses',
     statCountries: '42', statCountriesL: 'Countries',
@@ -979,7 +992,7 @@ const T = {
     feat3T: 'Community Feed', feat3D: 'Share (blurred) and vote. Daily Hall of Fame winner gets a reward!',
     feat4T: 'Multi-Pet Profiles', feat4D: 'Manage multiple dogs and cats. Each pet gets its own health dashboard.',
     feat5T: 'Vet-Ready Reports', feat5D: 'Export PDF reports with trend charts to share with your veterinarian.',
-    feat6T: 'World Poop Map', feat6D: 'See average gut health scores by country. How does your region compare?',
+    feat6T: 'Regional Health Map', feat6D: 'See average gut health signals by country. How does your region compare?',
     // Analyze
     uploadTitle: 'Upload a Poop Photo',
     uploadText: 'Tap to add a photo',
@@ -1089,7 +1102,7 @@ const T = {
     // Ad
     adSlot: '📢 Ad Space — AdSense',
     // Stats Dashboard
-    statsTitle: '📊 Statistics Dashboard', statsWeek: 'This Week', statsTotal: 'Total', statsAvgScore: 'Avg Score',
+    statsTitle: 'Statistics Dashboard', statsWeek: 'This Week', statsTotal: 'Total', statsAvgScore: 'Avg Score',
     statsBestScore: 'Best Score', statsCount: 'Total Logs', statsTimeHeat: 'Time Heatmap',
     statsMorning: 'Morning', statsAfternoon: 'Afternoon', statsEvening: 'Evening', statsNight: 'Night',
     // Leaderboard
@@ -1142,10 +1155,10 @@ const T = {
   ko: {
     home: '홈', analyze: '분석', feed: '피드', calendar: '캘린더', missions: '미션',
     halloffame: '명예의전당', worldmap: '월드맵', login: '로그인', more: '더보기',
-    heroTitle1: '건강 신호,', heroTitle2: '똥이 알려줘요', heroTitle3: '🐾',
-    heroLabel: '✨ 스마트 분석',
+    heroTitle1: '건강 신호,', heroTitle2: 'AI가 정리해요', heroTitle3: '',
+    heroLabel: 'AI 건강 체크',
     heroSub: '사진 한 장으로 색상·형태·질감 즉시 분석',
-    startBtn: '📸 분석하기', learnBtn: '📋 피드',
+    startBtn: '분석하기', learnBtn: '기록 보기',
     statUsers: '20,000+', statUsersL: '사용자', statAnalyses: '85,000+', statAnalysesL: '분석 건',
     statCountries: '42', statCountriesL: '국가',
     modeDog: '강아지', modeCat: '고양이', modeHuman: '사람',
@@ -1154,7 +1167,7 @@ const T = {
     feat3T: '커뮤니티 피드', feat3D: '블러 처리된 사진을 공유하고 투표하세요. 매일 명예의전당 1위에게 리워드!',
     feat4T: '멀티펫 프로필', feat4D: '여러 강아지와 고양이 관리. 각 반려동물 전용 건강 대시보드.',
     feat5T: '수의사 리포트', feat5D: '트렌드 차트가 포함된 PDF 리포트를 수의사에게 공유하세요.',
-    feat6T: '월드 똥 맵', feat6D: '국가별 평균 장건강 점수를 확인하세요. 우리나라는 몇 점일까?',
+    feat6T: '지역 건강 지도', feat6D: '국가별 평균 장건강 점수를 확인하세요. 우리나라는 몇 점일까?',
     uploadTitle: '똥 사진 업로드',
     uploadText: '탭하여 사진을 추가하세요',
     uploadHint: 'JPG, PNG, HEIC — 최대 10MB. 사진은 자동으로 블러 처리됩니다.',
@@ -1253,7 +1266,7 @@ const T = {
     loginBtn: '로그인', signupLink: '계정 없으시나요? 회원가입',
     loginEmailTab: '로그인', signupEmailTab: '회원가입',
     adSlot: '📢 광고 공간 — 애드센스',
-    statsTitle: '📊 통계 대시보드', statsWeek: '이번 주', statsTotal: '전체', statsAvgScore: '평균 점수',
+    statsTitle: '통계 대시보드', statsWeek: '이번 주', statsTotal: '전체', statsAvgScore: '평균 점수',
     statsBestScore: '최고 점수', statsCount: '총 기록', statsTimeHeat: '시간대 히트맵',
     statsMorning: '아침', statsAfternoon: '오후', statsEvening: '저녁', statsNight: '밤',
     lbTitle: '🏆 글로벌 리더보드', lbWeekly: '주간', lbMonthly: '월간', lbAllTime: '전체',
@@ -1299,10 +1312,10 @@ const T = {
   ja: {
     home: 'ホーム', analyze: '分析', feed: 'フィード', calendar: 'カレンダー', missions: 'ミッション',
     halloffame: '殿堂入り', worldmap: 'ワールドマップ', login: 'ログイン', more: 'もっと',
-    heroTitle1: 'うちの子の健康、', heroTitle2: 'うんちが教えてくれる', heroTitle3: '🐾',
+    heroTitle1: 'うちの子の健康、', heroTitle2: 'AIが整理します', heroTitle3: '',
     heroLabel: 'AI 健康分析',
     heroSub: '写真1枚でOK。色・形・質感までAIが丁寧に分析します。',
-    startBtn: '📸 今すぐ分析', learnBtn: '📋 フィードを見る',
+    startBtn: '今すぐ分析', learnBtn: '記録を見る',
     statUsers: '20,000+', statUsersL: 'ユーザー', statAnalyses: '85,000+', statAnalysesL: '分析件数',
     statCountries: '42', statCountriesL: '国',
     modeDog: '犬', modeCat: '猫', modeHuman: '人間',
@@ -1311,7 +1324,7 @@ const T = {
     feat3T: 'コミュニティフィード', feat3D: 'ぼかし処理写真を共有して投票。毎日の殿堂1位にリワード！',
     feat4T: 'マルチペットプロフィール', feat4D: '複数の犬と猫を管理。各ペット専用の健康ダッシュボード。',
     feat5T: '獣医レポート', feat5D: 'トレンドチャート付きPDFレポートを獣医と共有。',
-    feat6T: 'ワールドうんちマップ', feat6D: '国別の平均腸健康スコアを確認。あなたの地域は何点？',
+    feat6T: '地域ヘルスマップ', feat6D: '国別の平均腸健康スコアを確認。あなたの地域は何点？',
     uploadTitle: 'うんち写真アップロード',
     uploadText: 'ドラッグ＆ドロップまたはタップ',
     uploadHint: 'JPG, PNG, HEIC — 最大10MB。写真は自動的にぼかし処理されます。',
@@ -1374,7 +1387,7 @@ const T = {
     loginBtn: 'ログイン', signupLink: 'アカウントがない？新規登録',
     loginEmailTab: 'ログイン', signupEmailTab: '新規登録',
     adSlot: '📢 広告スペース — AdSense',
-    statsTitle: '📊 統計ダッシュボード', statsWeek: '今週', statsTotal: '全体', statsAvgScore: '平均スコア',
+    statsTitle: '統計ダッシュボード', statsWeek: '今週', statsTotal: '全体', statsAvgScore: '平均スコア',
     statsBestScore: '最高スコア', statsCount: '合計記録', statsTimeHeat: '時間帯ヒートマップ',
     statsMorning: '朝', statsAfternoon: '午後', statsEvening: '夕方', statsNight: '夜',
     lbTitle: '🏆 グローバルリーダーボード', lbWeekly: '週間', lbMonthly: '月間', lbAllTime: '全期間',
@@ -1526,25 +1539,29 @@ const TOILET_RATINGS = [
 const CAL_RECORDS = {};
 
 // ── Demo Data Loader (call from console: loadDemoData()) ──
-function loadDemoData() {
+function loadDemoData(silent) {
   const bristolEmojis = ['⚫', '🟤', '🟫', '🟡', '🟠', '🔴', '💧'];
   const analysisKeys = ['resultHealthy', 'resultModerate', 'resultConcern', 'resultDehydration'];
   const colorKeys = ['colorBrown', 'colorDarkBrown', 'colorGreen', 'colorYellow'];
+  const demoScores = [86, 82, 88, 79, 91, 84, 76, 87, 81, 89];
+  const demoBristol = [4, 4, 3, 4, 4, 5, 3, 4, 4, 5];
+  const demoColors = ['colorBrown', 'colorBrown', 'colorDarkBrown', 'colorBrown', 'colorBrown', 'colorYellow', 'colorBrown', 'colorBrown', 'colorDarkBrown', 'colorBrown'];
 
   // 1. Analysis History (30 days of data)
   DB.history = [];
   for (let i = 30; i >= 0; i--) {
+    const age = 30 - i;
     const d = new Date(); d.setDate(d.getDate() - i);
-    d.setHours(7 + Math.floor(Math.random() * 12), Math.floor(Math.random() * 60));
-    const bristol = Math.floor(Math.random() * 5) + 2; // types 2-6
-    const score = bristol === 4 ? 80 + Math.floor(Math.random() * 20) : bristol === 3 || bristol === 5 ? 50 + Math.floor(Math.random() * 30) : 20 + Math.floor(Math.random() * 30);
+    d.setHours(7 + (age % 10), (age * 7) % 60);
+    const bristol = demoBristol[age % demoBristol.length];
+    const score = demoScores[age % demoScores.length];
     DB.history.push({
       date: d.toISOString(),
       pet: 'dog',
       score: score,
       bristol: bristol,
-      colorKey: colorKeys[Math.floor(Math.random() * colorKeys.length)],
-      msgKey: analysisKeys[Math.floor(Math.random() * analysisKeys.length)],
+      colorKey: demoColors[age % demoColors.length],
+      msgKey: score >= 84 ? 'resultHealthy' : 'resultModerate',
       key: 'tag' + Math.floor(Math.random() * 5),
     });
     // Mark calendar
@@ -1619,7 +1636,7 @@ function loadDemoData() {
 
   console.log('✅ Demo data loaded! Refreshing...');
   render();
-  showToast('✅ 데모 데이터 로드 완료!');
+  if (!silent) showToast('✅ 데모 데이터 로드 완료!');
 }
 
 // ── Router ──
@@ -1709,6 +1726,28 @@ function renderLanding() {
   // Get active pet photo for profile overlay
   const activePet = DB.pets.find(p => p.species === state.mode) || {};
   const profilePhoto = activePet.photo || (DB.user.loggedIn ? DB.user.photoUrl : '') || '';
+  const isKo = state.lang === 'ko';
+  const isJa = state.lang === 'ja';
+  const homeLastAnalysis = DB.history.filter(h => h.pet === state.mode).slice(-1)[0];
+  const homeScore = homeLastAnalysis ? homeLastAnalysis.score : null;
+  const recentRecordCount = DB.history.filter(h => h.pet === state.mode).slice(-7).length;
+  const petLabel = state.mode === 'dog'
+    ? (isKo ? '강아지' : isJa ? 'ワンちゃん' : 'Dog')
+    : state.mode === 'cat'
+      ? (isKo ? '고양이' : isJa ? 'ネコちゃん' : 'Cat')
+      : (isKo ? '가족' : isJa ? '家族' : 'Family');
+  const homeCopy = {
+    readiness: isKo ? '오늘 케어 준비됨' : isJa ? '今日のケア準備完了' : 'Ready for today',
+    scoreLabel: isKo ? '건강 점수' : isJa ? 'ヘルススコア' : 'Health score',
+    noScore: isKo ? '첫 분석 전' : isJa ? '初回分析前' : 'Before first scan',
+    scan: isKo ? 'AI 사진 분석' : isJa ? 'AI写真分析' : 'AI photo scan',
+    scanBody: isKo ? '색상, 형태, 위험 신호를 한 번에 정리합니다.' : isJa ? '色、形、リスクサインをまとめます。' : 'Color, form, and risk signals in one pass.',
+    pattern: isKo ? '패턴 추적' : isJa ? 'パターン追跡' : 'Pattern tracking',
+    patternBody: isKo ? `최근 ${recentRecordCount}건의 ${petLabel} 기록 기반` : isJa ? `最近${recentRecordCount}件の記録に基づく` : `${recentRecordCount} recent ${petLabel.toLowerCase()} records`,
+    report: isKo ? '수의사 공유 리포트' : isJa ? '獣医共有レポート' : 'Vet-ready report',
+    reportBody: isKo ? 'PDF/CSV로 보호자와 병원에 전달할 수 있습니다.' : isJa ? 'PDF/CSVで共有できます。' : 'Export PDF/CSV for caregivers and clinics.',
+    privacy: isKo ? '사진과 기록은 기기 중심으로 안전하게 관리됩니다.' : isJa ? '写真と記録は端末中心で管理されます。' : 'Photos and logs stay managed device-first.'
+  };
 
   return `<div class="page">
     <div class="hero">
@@ -1717,15 +1756,34 @@ function renderLanding() {
         ${profilePhoto ? `<div style="position:absolute;bottom:0;right:0;width:44px;height:44px;border-radius:50%;overflow:hidden;border:3px solid var(--accent-mint);background:var(--bg-card);box-shadow:0 2px 8px rgba(0,0,0,0.15)"><img src="${profilePhoto}" style="width:100%;height:100%;object-fit:cover"></div>` : ''}
       </div>
       <div class="hero-label" style="display:inline-block;padding:4px 14px;border-radius:20px;background:linear-gradient(135deg,var(--accent-mint-light),var(--accent-lavender-light));font-size:0.75rem;font-weight:700;color:var(--accent-mint);letter-spacing:0.5px;margin-bottom:8px">${t('heroLabel')}</div>
-      <h1 class="hero-title" style="line-height:1.2;font-size:1.4rem">${t('heroTitle1')}<br><span style="background:linear-gradient(135deg,var(--accent-mint),var(--accent-lavender));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">${t('heroTitle2')}</span> ${t('heroTitle3')}</h1>
+      <h1 class="hero-title" style="line-height:1.2;font-size:1.4rem">${t('heroTitle1')}<br><span style="background:linear-gradient(135deg,var(--accent-mint),var(--accent-lavender));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">${t('heroTitle2')}</span></h1>
       <p class="hero-subtitle" style="max-width:320px;margin:8px auto 0;line-height:1.5;font-size:0.85rem">${heroSub}</p>
       <div class="hero-cta" style="display:flex;gap:10px;justify-content:center;margin-top:20px">
         <button class="btn-primary" style="flex:1;max-width:150px;font-size:0.85rem;padding:12px 16px;border-radius:14px;font-weight:700" onclick="navigate('analyze')">${t('startBtn')}</button>
         <button class="btn-secondary" style="flex:1;max-width:150px;font-size:0.85rem;padding:12px 16px;border-radius:14px;font-weight:600;text-align:center" onclick="navigate('feed')">${t('learnBtn')}</button>
       </div>
+      <div class="home-trust-panel">
+        <div class="home-score-card" onclick="navigate('analyze')">
+          <div class="home-score-kicker">${homeCopy.readiness}</div>
+          <div class="home-score-row">
+            <div>
+              <div class="home-score-label">${homeCopy.scoreLabel}</div>
+              <div class="home-score-sub">${homeScore !== null ? `${petLabel} · Bristol Type ${homeLastAnalysis.bristol || 4}` : homeCopy.noScore}</div>
+            </div>
+            <div class="home-score-value">${homeScore !== null ? homeScore : '--'}<span>/100</span></div>
+          </div>
+          <div class="home-score-bar"><span style="width:${homeScore !== null ? Math.max(12, Math.min(100, homeScore)) : 18}%"></span></div>
+        </div>
+        <div class="home-trust-list">
+          <div class="home-trust-item"><strong>${homeCopy.scan}</strong><span>${homeCopy.scanBody}</span></div>
+          <div class="home-trust-item"><strong>${homeCopy.pattern}</strong><span>${homeCopy.patternBody}</span></div>
+          <div class="home-trust-item"><strong>${homeCopy.report}</strong><span>${homeCopy.reportBody}</span></div>
+        </div>
+        <div class="home-privacy-note">${homeCopy.privacy}</div>
+      </div>
     </div>
-    <div style="display:flex;justify-content:center;gap:16px;margin:20px 0 8px">
-      ${['dog', 'cat', 'human'].map(m => {
+    <div class="pet-mode-switch" style="display:flex;justify-content:center;gap:16px;margin:20px 0 8px">
+      ${['dog', 'cat'].map(m => {
     const modeColors = { dog: { bg: '#E8F5E9', ring: '#5BB89A' }, cat: { bg: '#FFF3E0', ring: '#FFB74D' }, human: { bg: '#EDE7F6', ring: '#9C7BDB' } };
     const c = modeColors[m];
     const isActive = state.mode === m;
@@ -1825,10 +1883,10 @@ function renderLanding() {
             <ellipse cx="58" cy="42" rx="3" ry="5" fill="#F5C8A8"/>
           </svg>`
     };
-    return `<div onclick="haptic('light');state.mode='${m}';render()" style="width:68px;height:68px;border-radius:50%;background:${c.bg};display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s ease;${isActive ? `box-shadow:0 0 0 3px ${c.ring};transform:scale(1.12)` : 'opacity:0.7'}">${modeIcons[m]}</div>`;
+    return `<div class="pet-mode-option" onclick="haptic('light');state.mode='${m}';render()" style="width:68px;height:68px;border-radius:50%;background:${c.bg};display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s ease;${isActive ? `box-shadow:0 0 0 3px ${c.ring};transform:scale(1.12)` : 'opacity:0.7'}">${modeIcons[m]}</div>`;
   }).join('')}
     </div>
-    <div class="features-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="features-grid home-feature-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       ${(() => {
       const lastAnalysis = DB.history.filter(h => h.pet === state.mode).slice(-1)[0];
       const healthScore = lastAnalysis ? lastAnalysis.score : null;
@@ -1923,18 +1981,18 @@ function renderLanding() {
 
 // ── Page: Analyze ──
 function renderAnalyze() {
-  const modeBtnColors = { dog: { bg: '#E8F5E9', border: '#5BB89A', text: '#2E7D5A' }, cat: { bg: '#FFF3E0', border: '#FFB74D', text: '#E65100' }, human: { bg: '#EDE7F6', border: '#9C7BDB', text: '#4A148C' } };
+  const modeBtnColors = { dog: { bg: '#E8F5E9', border: '#5BB89A', text: '#2E7D5A' }, cat: { bg: '#FFF3E0', border: '#FFB74D', text: '#E65100' } };
   return `<div class="page"><div class="analyze-container">
     <h1 class="section-title">${t('uploadTitle')}</h1>
     <div style="display:flex;gap:10px;justify-content:center;margin:12px 0 16px">
-      ${['dog', 'cat', 'human'].map(m => {
+      ${['dog', 'cat'].map(m => {
     const mc = modeBtnColors[m];
     const isA = state.mode === m;
-    const labels = { dog: '🐕 ' + (state.lang === 'ko' ? '강아지' : 'Dog'), cat: '🐱 ' + (state.lang === 'ko' ? '고양이' : 'Cat'), human: '👤 ' + (state.lang === 'ko' ? '사람' : 'Human') };
+    const labels = { dog: state.lang === 'ko' ? '강아지' : state.lang === 'ja' ? '犬' : 'Dog', cat: state.lang === 'ko' ? '고양이' : state.lang === 'ja' ? '猫' : 'Cat' };
     return `<button onclick="state.mode='${m}';render()" style="flex:1;max-width:110px;padding:10px 8px;border-radius:12px;font-size:0.82rem;font-weight:${isA ? '700' : '500'};border:2px solid ${isA ? mc.border : 'transparent'};background:${isA ? mc.bg : 'var(--bg-secondary,#f5f5f5)'};color:${isA ? mc.text : 'var(--text-secondary)'};cursor:pointer;transition:all 0.2s">${labels[m]}</button>`;
   }).join('')}
     </div>
-    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+    <div class="photo-guide-row" style="display:flex;justify-content:flex-end;margin-bottom:8px">
       <button onclick="showPhotoGuide()" style="background:none;border:1px solid var(--border-soft,#ddd);border-radius:20px;padding:5px 12px;font-size:0.75rem;color:var(--text-secondary);cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:4px">📸 ${state.lang === 'ko' ? '촬영 가이드' : state.lang === 'ja' ? '撮影ガイド' : 'Photo Guide'}</button>
     </div>
     <div class="upload-zone" id="uploadZone" onclick="showPhotoPickerPopup()" style="min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--accent-mint,#5BB89A);border-radius:16px;padding:30px 20px;cursor:pointer;background:var(--bg-secondary,#f9fafb)">
@@ -1946,6 +2004,19 @@ function renderAnalyze() {
     </div>
     <div id="photoThumbnails" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;justify-content:center"></div>
     <img class="preview-img" id="previewImg">
+    <div class="analysis-preview-panel">
+      <div class="analysis-preview-head">
+        <span>${state.lang === 'ko' ? '분석 결과 미리보기' : state.lang === 'ja' ? '分析結果プレビュー' : 'Analysis preview'}</span>
+        <strong>86/100</strong>
+      </div>
+      <div class="analysis-preview-grid">
+        <div><span>${state.lang === 'ko' ? '형태' : state.lang === 'ja' ? '形状' : 'Form'}</span><strong>Bristol Type 4</strong></div>
+        <div><span>${state.lang === 'ko' ? '색상' : state.lang === 'ja' ? '色' : 'Color'}</span><strong>${state.lang === 'ko' ? '정상 범위' : state.lang === 'ja' ? '正常範囲' : 'Normal range'}</strong></div>
+        <div><span>${state.lang === 'ko' ? '위험 신호' : state.lang === 'ja' ? 'リスク' : 'Risk signal'}</span><strong>${state.lang === 'ko' ? '낮음' : state.lang === 'ja' ? '低い' : 'Low'}</strong></div>
+        <div><span>${state.lang === 'ko' ? '다음 행동' : state.lang === 'ja' ? '次の行動' : 'Next step'}</span><strong>${state.lang === 'ko' ? '기록 저장' : state.lang === 'ja' ? '記録保存' : 'Save log'}</strong></div>
+      </div>
+      <p>${state.lang === 'ko' ? '분석 결과는 건강 참고용이며, 이상 징후가 반복되면 수의사 상담을 권장합니다.' : state.lang === 'ja' ? '結果は健康参考用です。異常が続く場合は獣医に相談してください。' : 'Results are for health reference. Repeated warning signs should be reviewed with a veterinarian.'}</p>
+    </div>
     <div class="analyze-btn-wrap">
       <button class="btn-primary" id="analyzeBtn" onclick="runAnalysis()" style="display:none;width:100%;padding:14px;border-radius:14px;font-size:1rem;font-weight:700">${t('analyzeBtn')}</button>
     </div>
@@ -1993,7 +2064,7 @@ function renderFeed() {
       <div class="online-count"><div class="online-dot"></div>${online} ${t('feedOnline')}</div>
     </div>
     <div class="feed-filters">
-      ${[['all', t('filterAll')], ['dog', '🐕'], ['cat', '🐱'], ['human', '👤'], ['M', '♂'], ['F', '♀']].map(([f, label]) => `
+      ${[['all', t('filterAll')], ['dog', '🐕'], ['cat', '🐱'], ['M', '♂'], ['F', '♀']].map(([f, label]) => `
         <button class="filter-btn ${state.feedFilter === f ? 'active' : ''}" onclick="state.feedFilter='${f}';render()">${label}</button>`).join('')}
     </div>
     <div class="feed-grid" style="margin-top:16px">
@@ -2049,7 +2120,10 @@ let pottyTimerSeconds = 0;
 let pottyTimerRunning = false;
 if (!state.calTab) state.calTab = 'calendar';
 
-function savePottyLogs() { localStorage.setItem('pb-potty-logs', JSON.stringify(POTTY_LOGS)); }
+function savePottyLogs() {
+  localStorage.setItem('pb-potty-logs', JSON.stringify(POTTY_LOGS));
+  scheduleWidgetSync();
+}
 
 function addPottyLog(type) {
   const now = new Date();
@@ -2068,6 +2142,106 @@ function deletePottyLog(idx) {
 function getTodayLogs() {
   const todayStr = new Date().toDateString();
   return POTTY_LOGS.filter(l => new Date(l.time).toDateString() === todayStr && l.pet === state.mode);
+}
+
+let WidgetBridge = null;
+let widgetSyncTimer = null;
+let widgetConsumeInFlight = false;
+
+function getNativeWidgetBridge() {
+  if (WidgetBridge) return WidgetBridge;
+  try {
+    if (!window.Capacitor || !window.Capacitor.isNativePlatform || !window.Capacitor.isNativePlatform()) {
+      return null;
+    }
+    if (window.Capacitor.Plugins && window.Capacitor.Plugins.WidgetBridge) {
+      WidgetBridge = window.Capacitor.Plugins.WidgetBridge;
+      return WidgetBridge;
+    }
+    if (typeof window.Capacitor.registerPlugin === 'function') {
+      WidgetBridge = window.Capacitor.registerPlugin('WidgetBridge');
+      return WidgetBridge;
+    }
+  } catch (e) {
+    console.warn('[WidgetBridge] resolve failed:', e);
+  }
+  return null;
+}
+
+function getWidgetPayload() {
+  const activePet = DB.pets.find(p => p.id === DB.activePet);
+  const todayLogs = getTodayLogs();
+  const lastPoo = todayLogs.filter(l => l.type === 'poo').sort((a, b) => new Date(b.time) - new Date(a.time))[0];
+  const recentAnalysis = DB.history
+    .filter(h => h.pet === state.mode)
+    .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+  return {
+    lang: state.lang || 'en',
+    mode: state.mode || 'dog',
+    activePetName: activePet ? activePet.name : '',
+    peeCount: todayLogs.filter(l => l.type === 'pee').length,
+    pooCount: todayLogs.filter(l => l.type === 'poo').length,
+    accidentCount: todayLogs.filter(l => l.type === 'accident').length,
+    lastPooAt: lastPoo ? lastPoo.time : '',
+    lastScore: recentAnalysis && Number.isFinite(Number(recentAnalysis.score)) ? Number(recentAnalysis.score) : -1,
+    lastBristol: recentAnalysis && Number.isFinite(Number(recentAnalysis.bristol)) ? Number(recentAnalysis.bristol) : -1,
+  };
+}
+
+function scheduleWidgetSync() {
+  if (!getNativeWidgetBridge()) return;
+  clearTimeout(widgetSyncTimer);
+  widgetSyncTimer = setTimeout(syncWidgetStateNow, 150);
+}
+
+async function syncWidgetStateNow() {
+  const bridge = getNativeWidgetBridge();
+  if (!bridge || typeof bridge.syncWidgetState !== 'function') return;
+  try {
+    await bridge.syncWidgetState(getWidgetPayload());
+  } catch (e) {
+    console.warn('[WidgetBridge] sync failed:', e);
+  }
+}
+
+async function consumeWidgetPendingEvents() {
+  const bridge = getNativeWidgetBridge();
+  if (!bridge || widgetConsumeInFlight || typeof bridge.consumePendingEvents !== 'function') return;
+  widgetConsumeInFlight = true;
+  try {
+    const result = await bridge.consumePendingEvents();
+    const events = Array.isArray(result && result.events) ? result.events : [];
+    if (!events.length) {
+      scheduleWidgetSync();
+      return;
+    }
+    const existingIds = new Set(POTTY_LOGS.map(l => l.id).filter(Boolean));
+    let added = 0;
+    events.forEach(event => {
+      if (!event || !event.type || existingIds.has(event.id)) return;
+      const type = ['pee', 'poo', 'accident'].includes(event.type) ? event.type : null;
+      if (!type) return;
+      POTTY_LOGS.push({
+        id: event.id || `widget-${Date.now()}-${added}`,
+        type,
+        time: event.time || new Date().toISOString(),
+        pet: event.pet || state.mode,
+        source: 'widget',
+      });
+      added += 1;
+    });
+    if (added > 0) {
+      savePottyLogs();
+      render();
+    } else {
+      scheduleWidgetSync();
+    }
+  } catch (e) {
+    console.warn('[WidgetBridge] consume failed:', e);
+  } finally {
+    widgetConsumeInFlight = false;
+  }
 }
 
 function getPottyStats() {
@@ -2552,7 +2726,7 @@ function renderStats() {
     ${totalCount === 0 ? `<div class="card" style="padding:32px;text-align:center;color:var(--text-muted)">${noDataMsg}</div>` : ''}
     <!-- Trend Line Chart -->
     <div class="card chart-card">
-      <h3 class="chart-title">📈 Health Trend (30 Days)</h3>
+      <h3 class="chart-title">${state.lang === 'ko' ? '30일 건강 추세' : state.lang === 'ja' ? '30日ヘルストレンド' : 'Health Trend (30 Days)'}</h3>
       <canvas id="trendCanvas" width="700" height="220" style="width:100%;height:220px"></canvas>
     </div>
     <!-- Weekly Bar Chart -->
@@ -2568,7 +2742,7 @@ function renderStats() {
     </div>
     <!-- Bristol Distribution -->
     <div class="card chart-card">
-      <h3 class="chart-title">💩 Bristol Scale Distribution</h3>
+      <h3 class="chart-title">${state.lang === 'ko' ? '브리스톨 유형 분포' : state.lang === 'ja' ? 'ブリストルタイプ分布' : 'Bristol Scale Distribution'}</h3>
       <canvas id="bristolCanvas" width="700" height="200" style="width:100%;height:200px"></canvas>
       <div class="bristol-legend">
         ${bristolDist.map((v, i) => `<div class="bristol-item"><span class="bristol-type">Type ${i + 1}</span><span class="bristol-count">${v}</span></div>`).join('')}
@@ -2641,7 +2815,6 @@ function initStatsCharts() {
     ctx.beginPath(); ctx.moveTo(pad.l, targetY); ctx.lineTo(w - pad.r, targetY); ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = 'rgba(255,193,7,0.7)'; ctx.font = '9px Outfit'; ctx.textAlign = 'left';
-    ctx.fillText('Target: 75', w - pad.r + 2, targetY - 4);
     // Fill area (only non-zero segments)
     const grad = ctx.createLinearGradient(0, pad.t, 0, h - pad.b);
     grad.addColorStop(0, 'rgba(126,207,179,0.3)'); grad.addColorStop(1, 'rgba(126,207,179,0.01)');
@@ -3695,7 +3868,6 @@ function showAddPetModal() {
       <select id="petSpecies" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px;font-family:var(--font);background:var(--bg-secondary);color:var(--text-primary)">
         <option value="dog">🐕 ${isKo ? '강아지' : 'Dog'}</option>
         <option value="cat">🐱 ${isKo ? '고양이' : 'Cat'}</option>
-        <option value="human">👤 ${isKo ? '사람' : 'Human'}</option>
       </select>
       <input id="petBreed" placeholder="${isKo ? '품종' : 'Breed'}" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px;font-family:var(--font);background:var(--bg-secondary);color:var(--text-primary);box-sizing:border-box">
       <input id="petBirthday" type="date" placeholder="${isKo ? '생일' : 'Birthday'}" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px;font-family:var(--font);background:var(--bg-secondary);color:var(--text-primary);box-sizing:border-box">
@@ -5327,6 +5499,7 @@ function render() {
   if (state.page === 'stats') setTimeout(initStatsCharts, 50);
   // 리포트 추세 캔버스 그리기
   if (state.page === 'calendar' && state.calTab === 'report') setTimeout(drawReportTrend, 50);
+  scheduleWidgetSync();
 }
 
 // ── Flappy Poop Game ──
@@ -5482,8 +5655,14 @@ setTimeout(checkDailyReminder, 5000);
 
 // ── Init ──
 document.addEventListener('DOMContentLoaded', () => {
+  consumeWidgetPendingEvents();
   // 서버 동기화 초기화
   ServerSync.init().catch(e => console.warn('[Sync] Init failed:', e));
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+    window.Capacitor.Plugins.App.addListener('resume', () => {
+      consumeWidgetPendingEvents();
+    }).catch(e => console.warn('[WidgetBridge] resume listener failed:', e));
+  }
 
   // Theme
   if (state.theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
@@ -5571,7 +5750,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const flagUrl = (code) => `https://flagcdn.com/w80/${code}.png`;
 
   // Store selected country
-  let selectedCountry = localStorage.getItem('pb-country') || 'Korea (한국)';
+  const defaultCountryByLang = { ko: 'Korea (한국)', en: 'United States', ja: 'Japan (日本)' };
+  let selectedCountry = localStorage.getItem('pb-country') || defaultCountryByLang[state.lang] || 'United States';
   const savedCountry = COUNTRIES.find(c => c.name === selectedCountry);
   const btnLang = document.getElementById('btnLang');
   if (savedCountry) {
@@ -5662,6 +5842,14 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('backbutton', (e) => { e.preventDefault(); handleBackButton(); }, false);
   // Fallback: popstate for browser back button
   window.addEventListener('popstate', (e) => { e.preventDefault(); handleBackButton(); });
+
+  try {
+    if (new URLSearchParams(window.location.search).get('demo') === '1') {
+      loadDemoData(true);
+    }
+  } catch (e) {
+    console.warn('[PoopBuddy] demo data launch ignored:', e);
+  }
 
   render();
 });

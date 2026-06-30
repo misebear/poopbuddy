@@ -21,6 +21,11 @@ Thumbs.db
 *.log
 npm-debug.log*
 
+# Local signing / secrets
+android/keystore.properties
+*.jks
+!android/poopbuddy-release.jks
+
 # Local AI handoff exports
 **/ChatGPT_Codex_Master_Context.txt
 **/_AI_HANDOVER.md

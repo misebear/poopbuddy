@@ -1,0 +1,10 @@
+{
+  "package": "com.poopbuddy.app",
+  "versionCode": 8,
+  "versionName": "2.5",
+  "aab": "C:\\development\\PoopBuddy\\android\\app\\build\\outputs\\bundle\\release\\app-release.aab",
+  "sha256": "4D12EAE5115A02928BFB960F65809EC1C2AA3F29324AEBC7DF5B419F6F76528E",
+  "size": 6276522,
+  "builtAt": "2026-06-30T03:22:33",
+  "reason": "versionCode 7 already used in Play artifact library; rebuilt as versionCode 8"
+}

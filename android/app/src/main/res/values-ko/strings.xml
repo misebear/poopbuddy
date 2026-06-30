@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PoopBuddy</string>
+    <string name="title_activity_main">PoopBuddy</string>
+    <string name="package_name">com.poopbuddy.app</string>
+    <string name="custom_url_scheme">com.poopbuddy.app</string>
+    <string name="widget_quick_title">PoopBuddy 빠른 기록</string>
+    <string name="widget_health_title">PoopBuddy 건강 요약</string>
+    <string name="widget_quick_description">홈 화면에서 소변, 대변, 실수를 바로 기록합니다.</string>
+    <string name="widget_health_description">오늘 배변 요약과 최근 AI 건강 점수를 확인합니다.</string>
+    <string name="widget_pee">소변</string>
+    <string name="widget_poo">대변</string>
+    <string name="widget_accident">실수</string>
+    <string name="widget_open_calendar">캘린더 열기</string>
+    <string name="widget_empty_today">오늘 기록 없음</string>
+    <string name="widget_no_score">점수 없음</string>
+    <string name="widget_no_pet">반려동물 선택</string>
+</resources>

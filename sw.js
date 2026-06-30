@@ -1,4 +1,4 @@
-const CACHE_NAME = 'poopbuddy-v5';
+const CACHE_NAME = 'poopbuddy-v6-widget';
 const STATIC_ASSETS = [
     '/',
     '/index.html',

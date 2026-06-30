@@ -2,6 +2,7 @@ package com.poopbuddy.app;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -16,12 +17,26 @@ public class MainActivity extends BridgeActivity {
     private boolean backCallbackRegistered = false;
 
     @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        registerPlugin(WidgetBridgePlugin.class);
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleWidgetLaunchIntent(intent);
+    }
+
+    @Override
     public void onStart() {
         super.onStart();
 
         if (getBridge() == null || getBridge().getWebView() == null)
             return;
         WebView webView = getBridge().getWebView();
+        handleWidgetLaunchIntent(getIntent());
 
         // ── User-Agent에서 "wv" 제거 (카카오톡 로그인 버튼 표시) ──
         WebSettings settings = webView.getSettings();
@@ -111,5 +126,24 @@ public class MainActivity extends BridgeActivity {
                 return super.shouldOverrideUrlLoading(view, request);
             }
         });
+    }
+
+    private void handleWidgetLaunchIntent(Intent intent) {
+        if (intent == null || getBridge() == null || getBridge().getWebView() == null) {
+            return;
+        }
+        String page = intent.getStringExtra(WidgetStateStore.EXTRA_PAGE);
+        if (page == null || page.trim().isEmpty()) {
+            Uri data = intent.getData();
+            if (data != null) {
+                page = data.getQueryParameter("page");
+            }
+        }
+        if (page == null || page.trim().isEmpty()) {
+            return;
+        }
+        getBridge().getWebView().loadUrl("https://localhost/?page=" + Uri.encode(page));
+        intent.removeExtra(WidgetStateStore.EXTRA_PAGE);
+        intent.setData(null);
     }
 }

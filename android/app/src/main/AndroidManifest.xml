@@ -32,6 +32,36 @@
 
         </activity>
 
+        <receiver
+            android:name=".QuickLogWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.poopbuddy.app.widget.LOG_PEE" />
+                <action android:name="com.poopbuddy.app.widget.LOG_POO" />
+                <action android:name="com.poopbuddy.app.widget.LOG_ACCIDENT" />
+                <action android:name="com.poopbuddy.app.widget.REFRESH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_quick_log_info" />
+        </receiver>
+
+        <receiver
+            android:name=".HealthSummaryWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.poopbuddy.app.widget.LOG_PEE" />
+                <action android:name="com.poopbuddy.app.widget.LOG_POO" />
+                <action android:name="com.poopbuddy.app.widget.LOG_ACCIDENT" />
+                <action android:name="com.poopbuddy.app.widget.REFRESH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_health_summary_info" />
+        </receiver>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

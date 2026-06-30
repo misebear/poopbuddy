@@ -1,0 +1,44 @@
+{
+  "version": "2.4",
+  "versionCode": 6,
+  "packageName": "com.poopbuddy.app",
+  "releaseName": "PoopBuddy 2.4 global polish",
+  "fallbackLocale": "en-US",
+  "locales": [
+    {
+      "playLocale": "ko-KR",
+      "sourceLocale": "ko",
+      "androidQualifier": "ko",
+      "country": "KR",
+      "languageName": "Korean",
+      "storeListingSource": "store-listing/locales/ko-KR",
+      "screenshotSource": "store-listing/locales/ko-KR/phone-screenshots",
+      "appResourceStatus": "complete"
+    },
+    {
+      "playLocale": "en-US",
+      "sourceLocale": "en",
+      "androidQualifier": "",
+      "country": "US",
+      "languageName": "English",
+      "storeListingSource": "store-listing/locales/en-US",
+      "screenshotSource": "store-listing/locales/en-US/phone-screenshots",
+      "appResourceStatus": "complete"
+    },
+    {
+      "playLocale": "ja-JP",
+      "sourceLocale": "ja",
+      "androidQualifier": "ja",
+      "country": "JP",
+      "languageName": "Japanese",
+      "storeListingSource": "store-listing/locales/ja-JP",
+      "screenshotSource": "store-listing/locales/ja-JP/phone-screenshots",
+      "appResourceStatus": "complete"
+    }
+  ],
+  "publicUrlChecks": [
+    { "country": "KR", "language": "ko", "playLocale": "ko-KR" },
+    { "country": "US", "language": "en", "playLocale": "en-US" },
+    { "country": "JP", "language": "ja", "playLocale": "ja-JP" }
+  ]
+}

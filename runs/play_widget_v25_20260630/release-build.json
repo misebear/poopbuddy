@@ -1,0 +1,22 @@
+{
+  "package": "com.poopbuddy.app",
+  "versionCode": 7,
+  "versionName": "2.5",
+  "aab": "C:\\development\\PoopBuddy\\android\\app\\build\\outputs\\bundle\\release\\app-release.aab",
+  "sha256": "BDE25CCB45A1C58340A4EE5634BC84C42D2360F28FC2980C4CACAF4237355A34",
+  "size": 6276514,
+  "builtAt": "2026-06-30T02:32:01",
+  "device": "SM-S931N Android 16",
+  "validations": [
+    "node --check index.js",
+    "node --check www/index.js",
+    "npx cap sync android",
+    "testDebugUnitTest",
+    "assembleDebug",
+    "real-device install",
+    "widget receiver query",
+    "widget broadcast queue/consume/localStorage",
+    "bundleRelease",
+    "lintDebug"
+  ]
+}

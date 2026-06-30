@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PoopBuddy</string>
+    <string name="title_activity_main">PoopBuddy</string>
+    <string name="package_name">com.poopbuddy.app</string>
+    <string name="custom_url_scheme">com.poopbuddy.app</string>
+    <string name="widget_quick_title">PoopBuddy クイック記録</string>
+    <string name="widget_health_title">PoopBuddy 健康サマリー</string>
+    <string name="widget_quick_description">ホーム画面からおしっこ、うんち、失敗をすぐ記録します。</string>
+    <string name="widget_health_description">今日の排便サマリーと最近のAI健康スコアを確認します。</string>
+    <string name="widget_pee">尿</string>
+    <string name="widget_poo">便</string>
+    <string name="widget_accident">失敗</string>
+    <string name="widget_open_calendar">カレンダーを開く</string>
+    <string name="widget_empty_today">今日の記録なし</string>
+    <string name="widget_no_score">スコアなし</string>
+    <string name="widget_no_pet">ペットを選択</string>
+</resources>

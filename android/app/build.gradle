@@ -4,12 +4,18 @@ android {
     namespace "com.poopbuddy.app"
     compileSdk rootProject.ext.compileSdkVersion
 
+    def keystorePropertiesFile = rootProject.file("keystore.properties")
+    def keystoreProperties = new Properties()
+    if (keystorePropertiesFile.exists()) {
+        keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+    }
+
     signingConfigs {
         release {
-            storeFile file('../poopbuddy-release.jks')
-            storePassword 'poopbuddy2026'
-            keyAlias 'poopbuddy'
-            keyPassword 'poopbuddy2026'
+            storeFile file(keystoreProperties['storeFile'] ?: '../poopbuddy-release.jks')
+            storePassword keystoreProperties['storePassword'] ?: System.getenv('POOPBUDDY_STORE_PASSWORD')
+            keyAlias keystoreProperties['keyAlias'] ?: System.getenv('POOPBUDDY_KEY_ALIAS')
+            keyPassword keystoreProperties['keyPassword'] ?: System.getenv('POOPBUDDY_KEY_PASSWORD')
         }
     }
 
@@ -17,8 +23,8 @@ android {
         applicationId "com.poopbuddy.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3
-        versionName "2.1"
+        versionCode 8
+        versionName "2.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

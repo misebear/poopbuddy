@@ -1,77 +1,71 @@
-# PoopBuddy — Play Store 등록 자료
+# PoopBuddy v2.4 Global Play Store Materials
 
-## 앱 이름
-PoopBuddy - AI 반려동물 건강 분석
+## Release
 
-## 간단한 설명 (80자)
-🐾 AI로 반려동물 대변을 분석하세요! 강아지·고양이·사람 장 건강 점수 즉시 확인
+- Package: `com.poopbuddy.app`
+- Version: `2.4`
+- Version code: `6`
+- Track target: `production`
+- Release name: `PoopBuddy 2.4 global polish`
+- Locale SSOT: `config/play-locales.json`
 
-## 자세한 설명
-🐾 PoopBuddy - AI 기반 반려동물 대변 건강 분석 앱
+## Primary Korean Listing
 
-반려동물의 건강 상태, 대변만 봐도 알 수 있어요!
-PoopBuddy는 Google Gemini AI 기술로 강아지와 고양이의 대변 사진을 분석하여, 실시간으로 장 건강 점수와 맞춤 건강 조언을 제공합니다.
+### App Name
 
-✅ 주요 기능
+PoopBuddy - 반려동물 배변기록
 
-🤖 AI 대변 분석
-• Bristol Stool Scale (1~7 타입) 정밀 판별
-• 색상·질감·이상 징후 자동 분석
-• 0~100점 건강 점수 실시간 산출
-• 점액, 혈변, 기생충 등 이상 징후 AI 감지
+### Short Description
 
-🐕 반려동물 맞춤
-• 강아지/고양이/사람 모드 지원
-• 품종·나이·체중 기반 맞춤 분석
-• 최대 5마리까지 멀티펫 프로필 관리
+AI 사진 분석으로 반려동물 장건강 점수와 패턴을 확인하세요
 
-📊 건강 추적
-• 매일 기록하고 캘린더에서 패턴 확인
-• 주간/월간 건강 추이 그래프
-• 시간대별 히트맵 분석
-• 수의사용 PDF 리포트 내보내기
+### Full Description
 
-🏆 재미있는 커뮤니티
-• 피드에서 다른 반려인과 건강 정보 공유
-• 명예의 전당 (일일 TOP 3)
-• 미션 & 챌린지 시스템
-• 세계 지도에서 각국 평균 건강 점수 비교
+PoopBuddy는 AI 기반 반려동물 장건강 체크 앱입니다.
 
-🔒 프라이버시
-• 사진은 자동 블러 처리 후 공유
-• AI 분석은 서버 프록시 방식 — API 키 안전 보호
-• 오프라인에서도 사용 가능 (PWA)
+강아지와 고양이의 대변 사진을 기록하고, 색상, 형태, 위험 신호를 정리해 장건강 점수와 관리 힌트를 제공합니다. 반복되는 이상 징후는 캘린더와 통계로 추적하고, 필요할 때 보호자 또는 수의사에게 공유할 수 있는 리포트로 정리할 수 있습니다.
 
-🌍 다국어 지원
-• 한국어, English, 日本語
+주요 기능
 
-💡 이렇게 사용하세요
-1. 사진을 찍거나 업로드하세요
-2. AI가 즉시 분석합니다 (3~5초)
-3. 건강 점수와 맞춤 조언을 확인하세요!
+- AI 사진 분석과 Bristol Type 참고
+- 0-100점 장건강 점수
+- 날짜별 캘린더와 주간 패턴 추적
+- 수의사 상담 준비용 PDF/CSV 리포트
+- 강아지/고양이 멀티펫 프로필
+- 보호자 중심의 개인정보 관리
 
-반려동물의 건강은 매일 챙기는 거예요 💪
-지금 PoopBuddy로 시작하세요!
+PoopBuddy의 분석 결과는 건강 참고용이며, 진단이나 치료를 대체하지 않습니다. 이상 징후가 반복되거나 심각한 증상이 있으면 수의사 상담을 권장합니다.
 
-## 카테고리
-건강 및 피트니스 (Health & Fitness)
+### Release Notes
 
-## 콘텐츠 등급
-전체이용가 (Everyone)
+v2.4 글로벌 스토어 개선
 
-## 태그
-반려동물, 건강, AI, 대변분석, 강아지, 고양이, 장건강, 수의사, 펫케어
+- 프리미엄 의료형 스토어 이미지 갱신
+- 한국어, 영어, 일본어 대표 등록정보 정리
+- 건강 점수, 캘린더, 수의사 공유 리포트 흐름 강화
 
-## 연락처 이메일
-poopbuddy.app@gmail.com
+## Locale Sets
 
-## 개인정보처리방침 URL
-(작성 필요)
+- `ko-KR`: `store-listing/locales/ko-KR/STORE_LISTING.md`
+- `en-US`: `store-listing/locales/en-US/STORE_LISTING.md`
+- `ja-JP`: `store-listing/locales/ja-JP/STORE_LISTING.md`
 
----
+## Upload Assets
 
-## 파일 목록
-- app-icon-512.png — 앱 아이콘 (512x512)
-- feature-graphic-1024x500.png — 피처 그래픽 (1024x500)
-- screenshot-*.png — 스크린샷 파일들
-- app-release.aab — 릴리스 AAB (android/app/build/outputs/bundle/release/)
+- `feature-graphic-1024x500.png`
+- `screenshot-1-home.png`
+- `screenshot-2-analyze.png`
+- `screenshot-3-calendar.png`
+- `screenshot-4-stats.png`
+- `screenshot-5-report.png`
+- `screenshot-6-profiles.png`
+- `screenshot-7-privacy.png`
+- `screenshot-8-routine.png`
+
+Locale-specific screenshots live under `store-listing/locales/<locale>/phone-screenshots/`.
+
+## Required Verification
+
+- Run `pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File scripts/render-store-assets.ps1`.
+- Run `pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File scripts/verify-store-assets.ps1`.
+- After Play upload, verify Play Console/API readback and public URLs for `KR/ko`, `US/en`, and `JP/ja`.

@@ -4,4 +4,15 @@
     <string name="title_activity_main">PoopBuddy</string>
     <string name="package_name">com.poopbuddy.app</string>
     <string name="custom_url_scheme">com.poopbuddy.app</string>
+    <string name="widget_quick_title">PoopBuddy Quick Log</string>
+    <string name="widget_health_title">PoopBuddy Health</string>
+    <string name="widget_quick_description">Log pee, poop, and accidents from your home screen.</string>
+    <string name="widget_health_description">See today\'s pet stool summary and recent AI health score.</string>
+    <string name="widget_pee">Pee</string>
+    <string name="widget_poo">Poop</string>
+    <string name="widget_accident">Oops</string>
+    <string name="widget_open_calendar">Open calendar</string>
+    <string name="widget_empty_today">No logs yet today</string>
+    <string name="widget_no_score">No score yet</string>
+    <string name="widget_no_pet">Select a pet</string>
 </resources>
