@@ -1,0 +1,9 @@
+{
+  "name": "poopbuddy-global-landing",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PoopBuddy global Google Play landing page",
+  "scripts": {
+    "start": "serve ."
+  }
+}

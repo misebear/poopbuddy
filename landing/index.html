@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PoopBuddy - AI pet stool tracker for dogs and cats</title>
+  <meta name="description" content="PoopBuddy helps dog and cat caregivers log pee, poop, accidents, stool photos, gut-health scores, and home-screen widget summaries.">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <link rel="canonical" href="https://go.poopbuddy.app/">
+  <link rel="alternate" hreflang="en" href="https://go.poopbuddy.app/">
+  <link rel="alternate" hreflang="ko" href="https://go.poopbuddy.app/ko/">
+  <link rel="alternate" hreflang="ja" href="https://go.poopbuddy.app/ja/">
+  <link rel="alternate" hreflang="x-default" href="https://go.poopbuddy.app/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="PoopBuddy - AI pet stool tracker">
+  <meta property="og:description" content="Quick bathroom logs, stool photo analysis, trends, reports, and Android home-screen widgets for pet caregivers.">
+  <meta property="og:image" content="https://go.poopbuddy.app/assets/dashboard-en.png">
+  <meta property="og:url" content="https://go.poopbuddy.app/">
+  <meta name="twitter:card" content="summary_large_image">
+  <style>
+    :root {
+      --ink: #17231f;
+      --muted: #52635d;
+      --paper: #f7fbf6;
+      --panel: #ffffff;
+      --mint: #63b99f;
+      --mint-dark: #26765f;
+      --gold: #f2c45b;
+      --coral: #e7796b;
+      --line: #dbe8e2;
+      --shadow: 0 18px 60px rgba(31, 68, 56, .18);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); }
+    a { color: inherit; }
+    .skip { position: absolute; left: 8px; top: 8px; transform: translateY(-160%); background: #fff; padding: 10px 14px; border-radius: 6px; }
+    .skip:focus { transform: translateY(0); z-index: 10; }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px clamp(18px, 4vw, 56px);
+      background: rgba(247, 251, 246, .88);
+      border-bottom: 1px solid rgba(219, 232, 226, .76);
+      backdrop-filter: blur(16px);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.05rem; }
+    .mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--mint), #f4dc8f 54%, #b9a3da);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.65);
+      font-weight: 900;
+    }
+    nav { display: flex; align-items: center; gap: 18px; color: var(--muted); font-weight: 650; font-size: .95rem; }
+    nav a { text-decoration: none; }
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 18px;
+      border-radius: 8px;
+      background: var(--mint-dark);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 800;
+      box-shadow: 0 10px 24px rgba(38, 118, 95, .24);
+      white-space: nowrap;
+    }
+    .hero {
+      min-height: 88vh;
+      display: grid;
+      grid-template-columns: minmax(0, 1.02fr) minmax(310px, .98fr);
+      gap: clamp(24px, 5vw, 72px);
+      align-items: center;
+      padding: clamp(42px, 7vw, 88px) clamp(18px, 5vw, 72px) 40px;
+      overflow: hidden;
+    }
+    .hero-copy { max-width: 720px; }
+    .eyebrow { color: var(--mint-dark); font-weight: 850; letter-spacing: 0; margin: 0 0 12px; }
+    h1 {
+      margin: 0;
+      font-size: clamp(2.8rem, 7vw, 6.6rem);
+      line-height: .94;
+      letter-spacing: 0;
+    }
+    .lead {
+      margin: 24px 0 0;
+      max-width: 660px;
+      color: var(--muted);
+      font-size: clamp(1.1rem, 2vw, 1.38rem);
+      line-height: 1.58;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 28px; }
+    .secondary {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--ink);
+      font-weight: 750;
+      background: rgba(255,255,255,.72);
+    }
+    .trust-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; color: var(--muted); font-size: .96rem; }
+    .trust-row span { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.7); }
+    .device-stage {
+      position: relative;
+      min-height: 620px;
+      display: grid;
+      place-items: center;
+    }
+    .device-stage::before {
+      content: "";
+      position: absolute;
+      inset: 4% -12% 12% 8%;
+      background: radial-gradient(circle at 36% 20%, rgba(242,196,91,.28), transparent 30%), linear-gradient(135deg, rgba(99,185,159,.32), rgba(231,121,107,.18));
+      border-radius: 50%;
+      transform: rotate(-8deg);
+    }
+    .phone {
+      position: relative;
+      z-index: 1;
+      width: min(52vw, 330px);
+      min-width: 250px;
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      border: 8px solid #17231f;
+      background: #17231f;
+      overflow: hidden;
+    }
+    .phone img { display: block; width: 100%; height: auto; border-radius: 20px; }
+    .floating-shot {
+      position: absolute;
+      z-index: 2;
+      right: 0;
+      bottom: 42px;
+      width: min(44vw, 310px);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,.72);
+      overflow: hidden;
+      background: #fff;
+    }
+    .floating-shot img { display: block; width: 100%; height: auto; }
+    section { padding: clamp(54px, 8vw, 98px) clamp(18px, 5vw, 72px); }
+    .section-head { max-width: 760px; margin-bottom: 28px; }
+    h2 { margin: 0; font-size: clamp(2rem, 4vw, 3.45rem); line-height: 1.04; letter-spacing: 0; }
+    .section-head p, .card p, .faq p { color: var(--muted); line-height: 1.58; }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 24px;
+      min-height: 220px;
+      box-shadow: 0 8px 24px rgba(31, 68, 56, .06);
+    }
+    .card strong { display: block; font-size: 1.2rem; margin-bottom: 10px; }
+    .screens { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-items: start; }
+    .shot { background: #fff; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; box-shadow: 0 10px 26px rgba(31,68,56,.1); }
+    .shot img { width: 100%; height: auto; display: block; }
+    .locales { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .locale { border-left: 4px solid var(--mint); padding: 18px 18px 18px 20px; background: #fff; border-radius: 0 8px 8px 0; }
+    .faq { max-width: 920px; }
+    .faq details { background: #fff; border: 1px solid var(--line); border-radius: 8px; margin: 12px 0; padding: 18px 20px; }
+    .faq summary { cursor: pointer; font-weight: 800; }
+    footer { padding: 36px clamp(18px, 5vw, 72px); border-top: 1px solid var(--line); color: var(--muted); display: flex; flex-wrap: wrap; gap: 14px; justify-content: space-between; }
+    footer a { color: var(--mint-dark); font-weight: 700; }
+    @media (max-width: 920px) {
+      header { position: relative; align-items: flex-start; }
+      nav { display: none; }
+      .hero { grid-template-columns: 1fr; min-height: auto; padding-top: 36px; }
+      .device-stage { min-height: 540px; }
+      .grid, .locales { grid-template-columns: 1fr; }
+      .screens { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .floating-shot { right: 4px; width: min(62vw, 280px); }
+    }
+    @media (max-width: 560px) {
+      .hero { padding-left: 16px; padding-right: 16px; }
+      .hero-actions a { width: 100%; }
+      .device-stage { min-height: 460px; }
+      .phone { width: min(78vw, 290px); min-width: 220px; }
+      .floating-shot { display: none; }
+      .screens { grid-template-columns: 1fr; }
+      h1 { font-size: clamp(2.7rem, 16vw, 4.3rem); }
+    }
+  </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "MobileApplication",
+    "name": "PoopBuddy",
+    "operatingSystem": "Android",
+    "applicationCategory": "HealthApplication",
+    "description": "AI-assisted pet stool tracker for dogs and cats with quick bathroom logs, stool photo analysis, calendar trends, reports, and Android home-screen widgets.",
+    "downloadUrl": "https://play.google.com/store/apps/details?id=com.poopbuddy.app",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "inLanguage": ["en", "ko", "ja"],
+    "publisher": { "@type": "Organization", "name": "JejuBucketList" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What does PoopBuddy track?",
+        "acceptedAnswer": { "@type": "Answer", "text": "PoopBuddy tracks pee, poop, accidents, stool photos, gut-health scores, calendar patterns, and exportable care reports for dogs and cats." }
+      },
+      {
+        "@type": "Question",
+        "name": "Does PoopBuddy replace a veterinarian?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. PoopBuddy is a wellness reference tool and does not replace veterinary diagnosis or treatment." }
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header>
+    <a class="brand" href="https://go.poopbuddy.app/" aria-label="PoopBuddy home">
+      <span class="mark" aria-hidden="true">P</span>
+      <span>PoopBuddy</span>
+    </a>
+    <nav aria-label="Primary">
+      <a href="#features">Features</a>
+      <a href="#screens">Screens</a>
+      <a href="#global">Global</a>
+      <a class="cta" href="https://play.google.com/store/apps/details?id=com.poopbuddy.app&referrer=utm_source%3Dlanding%26utm_medium%3Dweb%26utm_campaign%3Dglobal_launch">Install on Google Play</a>
+    </nav>
+  </header>
+  <main id="main">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">AI pet gut-health tracker for Android</p>
+        <h1>PoopBuddy</h1>
+        <p class="lead">Log pee, poop, accidents, and stool photos for dogs and cats. See daily patterns, AI-assisted gut-health signals, report-ready summaries, and Android home-screen widgets without digging through menus.</p>
+        <div class="hero-actions">
+          <a class="cta" href="https://play.google.com/store/apps/details?id=com.poopbuddy.app&referrer=utm_source%3Dlanding%26utm_medium%3Dweb%26utm_campaign%3Dglobal_launch">Install on Google Play</a>
+          <a class="secondary" href="#screens">Preview the app</a>
+        </div>
+        <div class="trust-row" aria-label="Key trust signals">
+          <span>Dogs and cats</span>
+          <span>Android widgets</span>
+          <span>KO / EN / JA</span>
+          <span>Wellness reference, not diagnosis</span>
+        </div>
+      </div>
+      <div class="device-stage" aria-label="PoopBuddy app screenshots">
+        <div class="phone"><img src="assets/home-ko.png" alt="PoopBuddy home screen with pet bathroom tracking cards"></div>
+        <div class="floating-shot"><img src="assets/dashboard-en.png" alt="PoopBuddy dashboard preview in English"></div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="section-head">
+        <h2>Bathroom tracking built for daily care.</h2>
+        <p>PoopBuddy focuses on the small records that become useful when a pet's digestion changes: quick logs, photo notes, calendar trends, and clean exports for caregiver or veterinary conversations.</p>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <strong>Quick pee, poop, accident logs</strong>
+          <p>Keep a daily record from the app or Android home screen widgets, then review counts and timing by pet.</p>
+        </article>
+        <article class="card">
+          <strong>AI-assisted stool photo review</strong>
+          <p>Capture stool photos and organize color, shape, Bristol Type references, risk signals, and a 0-100 gut-health score.</p>
+        </article>
+        <article class="card">
+          <strong>Reports and privacy controls</strong>
+          <p>Prepare PDF/CSV style care summaries, manage local records, and keep medical guidance framed as wellness support.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="screens">
+      <div class="section-head">
+        <h2>Real app screens, ready for repeated use.</h2>
+        <p>No marketing mockup guesswork: these are current PoopBuddy captures covering home, analysis, calendar, and widget guidance.</p>
+      </div>
+      <div class="screens">
+        <figure class="shot"><img src="assets/home-ko.png" alt="PoopBuddy home screen"><figcaption hidden>Home</figcaption></figure>
+        <figure class="shot"><img src="assets/analyze-ko.png" alt="PoopBuddy stool photo analysis screen"><figcaption hidden>Analysis</figcaption></figure>
+        <figure class="shot"><img src="assets/calendar-ko.png" alt="PoopBuddy calendar tracking screen"><figcaption hidden>Calendar</figcaption></figure>
+        <figure class="shot"><img src="assets/widget-ko.png" alt="PoopBuddy Android widget guide screen"><figcaption hidden>Widget guide</figcaption></figure>
+      </div>
+    </section>
+
+    <section id="global">
+      <div class="section-head">
+        <h2>Launched for Korean, English, and Japanese caregivers.</h2>
+        <p>The Google Play listing is publicly visible in KR, US, and JP locales with the Android widget update reflected.</p>
+      </div>
+      <div class="locales">
+        <article class="locale" lang="ko">
+          <strong>한국어</strong>
+          <p>강아지와 고양이의 배변 기록, 사진 분석, 캘린더 패턴, 홈 화면 위젯을 한 곳에서 관리합니다.</p>
+        </article>
+        <article class="locale" lang="en">
+          <strong>English</strong>
+          <p>Track pet bathroom routines, gut-health clues, and widget-based quick logs for everyday care.</p>
+        </article>
+        <article class="locale" lang="ja">
+          <strong>日本語</strong>
+          <p>犬と猫の排便記録、写真メモ、カレンダー傾向、ホーム画面ウィジェットをまとめて確認できます。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="faq" id="faq">
+      <div class="section-head">
+        <h2>Carefully framed health guidance.</h2>
+      </div>
+      <details>
+        <summary>Does PoopBuddy diagnose disease?</summary>
+        <p>No. PoopBuddy is for wellness reference and care organization. It does not replace veterinary diagnosis, treatment, or emergency care.</p>
+      </details>
+      <details>
+        <summary>What makes the widget useful?</summary>
+        <p>Caregivers can log pee, poop, and accidents from the Android home screen and see today's summary without opening the full app.</p>
+      </details>
+      <details>
+        <summary>Which languages are ready first?</summary>
+        <p>Korean, English, and Japanese are the first polished locales. Other markets can use English fallback until more translations are completed.</p>
+      </details>
+    </section>
+  </main>
+  <footer>
+    <span>PoopBuddy by JejuBucketList</span>
+    <span><a href="https://play.google.com/store/apps/details?id=com.poopbuddy.app">Google Play</a> · <a href="https://misebear.github.io">Support</a> · <a href="https://misebear.github.io">Privacy</a></span>
+  </footer>
+</body>
+</html>
