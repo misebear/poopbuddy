@@ -22,7 +22,13 @@ Evidence:
 
 ## Google Search Console
 
-Not submitted in this run because Google Search Console requires an authenticated property flow for the `pages.dev` URL. The sitemap is publicly ready:
+Property verification completed in Google Search Console:
+
+`https://poopbuddy-landing.pages.dev/`
+
+Submitted sitemap:
 
 `https://poopbuddy-landing.pages.dev/sitemap.xml`
+
+Immediate Search Console table status remained `가져올 수 없음`, while public fetch returned HTTP `200` with `application/xml`. Recheck after Google retries processing.
 

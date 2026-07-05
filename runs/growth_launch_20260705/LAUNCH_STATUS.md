@@ -9,6 +9,7 @@
 - Production landing URL: `https://poopbuddy-landing.pages.dev/`
 - Google Play Console website URL: updated to `https://poopbuddy-landing.pages.dev/`
 - IndexNow submission: accepted for landing URL and sitemap.
+- Google Search Console: property verified, sitemap submitted.
 
 ## Verification
 
@@ -19,6 +20,8 @@
 - Public Play URL matrix: PASS
 - Play Console store settings website readback: PASS
 - IndexNow submit: PASS, `202 Accepted`
+- Google Search Console ownership verification: PASS
+- Google Search Console sitemap submit: submitted, immediate table status `가져올 수 없음`
 
 ## Files Changed
 
