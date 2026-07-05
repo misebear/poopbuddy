@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://go.poopbuddy.app/</loc>
+    <loc>https://poopbuddy-landing.pages.dev/</loc>
     <lastmod>2026-07-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://go.poopbuddy.app/"/>
-    <xhtml:link rel="alternate" hreflang="ko" href="https://go.poopbuddy.app/ko/"/>
-    <xhtml:link rel="alternate" hreflang="ja" href="https://go.poopbuddy.app/ja/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://go.poopbuddy.app/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://poopbuddy-landing.pages.dev/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://poopbuddy-landing.pages.dev/ko/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://poopbuddy-landing.pages.dev/ja/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://poopbuddy-landing.pages.dev/"/>
   </url>
 </urlset>

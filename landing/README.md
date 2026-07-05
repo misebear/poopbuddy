@@ -1,6 +1,6 @@
 # PoopBuddy Global Landing
 
-Marketing landing page for `go.poopbuddy.app`.
+Marketing landing page for `https://poopbuddy-landing.pages.dev/`.
 
 Primary CTA:
 
@@ -8,6 +8,7 @@ Primary CTA:
 
 Deployment intent:
 
-- Deploy this folder to GitHub Pages with `.github/workflows/deploy-poopbuddy-landing.yml`.
-- Attach `go.poopbuddy.app` through `landing/CNAME`.
+- Deploy this folder to Cloudflare Pages project `poopbuddy-landing`.
+- Use `https://poopbuddy-landing.pages.dev/` as the live production landing URL.
+- Attach `poopbuddy.lumaleaf.app` or another custom domain later after domain control is recovered.
 - Keep the Android app code path untouched.
