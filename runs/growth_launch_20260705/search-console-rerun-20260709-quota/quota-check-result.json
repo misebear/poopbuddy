@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-07-09T08:47:52.6849133+09:00",
+  "url": "https://poopbuddy-landing.pages.dev/",
+  "googleRegistered": true,
+  "pageIndexed": true,
+  "manualRequestAttempted": true,
+  "quotaExceeded": false,
+  "requestAccepted": true,
+  "message": "색인 생성 요청됨: URL이 우선순위 크롤링 대기열에 추가되었습니다.",
+  "evidence": {
+    "inspectText": "C:\\development\\PoopBuddy\\runs\\growth_launch_20260705\\search-console-rerun-20260709-quota\\inspect-before-request-text.txt",
+    "modalScreenshot": "C:\\development\\PoopBuddy\\runs\\growth_launch_20260705\\search-console-rerun-20260709-quota\\after-request-modal.png",
+    "afterText": "C:\\development\\PoopBuddy\\runs\\growth_launch_20260705\\search-console-rerun-20260709-quota\\after-request-text.txt"
+  }
+}

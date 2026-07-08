@@ -1,0 +1,58 @@
+
+	
+2
+
+home
+개요
+lightbulb_2
+유용한 정보
+trending_up
+실적
+search
+URL 검사
+색인생성
+keyboard_arrow_up
+file_copy
+페이지
+account_tree
+Sitemaps
+visibility_off
+삭제
+실험
+keyboard_arrow_up
+speed
+코어 웹 바이탈
+lock
+HTTPS
+보안 및 직접 조치
+keyboard_arrow_down
+link_2
+링크
+trophy
+업적
+settings
+설정
+feedback
+의견 제출하기
+info
+Search Console 정보
+개인정보처리방침약관
+https://poopbuddy-landing.pages.dev/
+URL 검사
+실제 URL 테스트
+check_circle
+URL이 Google에 등록되어 있음
+Google 검색결과에 표시될 수 있으며(직접 조치 또는 삭제 요청이 없는 경우) 모든 관련 개선사항을 이용할 수 있습니다. 자세히 알아보기
+크롤링된 페이지 보기
+페이지가 변경되었나요?
+색인 생성 요청
+check_circle
+페이지 색인 생성
+페이지 색인이 생성됨
+
+개선사항과 환경
+check_circle
+HTTPS
+페이지가 HTTPS를 통해 제공됩니다.
+
+URL 검사
